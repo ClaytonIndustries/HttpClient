@@ -1,0 +1,15 @@
+.DS_Store
+Library
+Temp
+*.csproj
+*.pidb
+*.unityproj
+*.sln
+*.userprefs
+*.user
+*.suo
+
+/Builds/*
+/Source/bin/*
+/Source/obj/*
+/Source/UWP/*
