@@ -1,0 +1,237 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Text.RegularExpressions;
+
+namespace CI.HttpClient
+{
+    public abstract class HttpBase
+    {
+        protected void HandleRequestWrite<T>(Action<HttpResponseMessage<T>> responseCallback, HttpWebRequest request, IHttpContent content, Action<UploadStatusMessage> uploadStatusCallback,
+            int blockSize)
+        {
+            try
+            {
+                using (Stream stream = request.GetRequestStream())
+                {
+                    int contentLength = content.GetContentLength();
+                    int totalContentUploaded = 0;
+                    int contentUploadedThisRound = 0;
+                    bool streamContent = content is StreamContent;
+                    byte[] requestBuffer = null;
+                    Stream contentStream = null;
+
+                    if (streamContent)
+                    {
+                        requestBuffer = new byte[blockSize];
+                        contentStream = content.ReadAsStream();
+                    }
+                    else
+                    {
+                        requestBuffer = content.ReadAsByteArray();
+                        blockSize = uploadStatusCallback == null ? contentLength : blockSize;
+                    }
+
+                    while (totalContentUploaded != contentLength)
+                    {
+                        contentUploadedThisRound = 0;
+
+                        if (streamContent)
+                        {
+                            int read = 0;
+                            while ((read = contentStream.Read(requestBuffer, read, blockSize - read)) > 0)
+                            {
+                                contentUploadedThisRound += read;
+                            }
+
+                            if (contentUploadedThisRound > 0)
+                            {
+                                stream.Write(requestBuffer, 0, contentUploadedThisRound);
+                            }
+                        }
+                        else
+                        {
+                            contentUploadedThisRound = blockSize > (requestBuffer.Length - totalContentUploaded) ? (requestBuffer.Length - totalContentUploaded) : blockSize;
+
+                            stream.Write(requestBuffer, totalContentUploaded, contentUploadedThisRound);
+                        }
+
+                        totalContentUploaded += contentUploadedThisRound;
+
+                        if (uploadStatusCallback != null)
+                        {
+                            uploadStatusCallback(new UploadStatusMessage()
+                            {
+                                ContentLength = contentLength,
+                                ContentUploadedThisRound = contentUploadedThisRound,
+                                TotalContentUploaded = totalContentUploaded
+                            });
+                        }
+                    }
+
+                    if (contentStream != null)
+                    {
+                        contentStream.Close();
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                RaiseErrorResponse(responseCallback, e, request, null);
+            }
+        }
+
+        protected void HandleStringResponseRead(Action<HttpResponseMessage<string>> responseCallback, HttpWebRequest request)
+        {
+            HttpWebResponse response = null;
+
+            try
+            {
+                response = (HttpWebResponse)request.GetResponse();
+
+                using (StreamReader streamReader = new StreamReader(response.GetResponseStream()))
+                {
+                    if (responseCallback == null)
+                    {
+                        return;
+                    }
+
+                    responseCallback(new HttpResponseMessage<string>()
+                    {
+                        OriginalRequest = request,
+                        OriginalResponse = response,
+                        Data = streamReader.ReadToEnd(),
+                        ContentLength = response.ContentLength,
+                        ContentReadThisRound = response.ContentLength,
+                        TotalContentRead = response.ContentLength,
+                        StatusCode = response.StatusCode,
+                        ReasonPhrase = response.StatusDescription
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                RaiseErrorResponse(responseCallback, e, request, response);
+            }
+        }
+
+        protected void HandleByteArrayResponseRead(Action<HttpResponseMessage<byte[]>> responseCallback, HttpCompletionOption completionOption, HttpWebRequest request, int blockSize)
+        {
+            HttpWebResponse response = null;
+
+            try
+            {
+                response = (HttpWebResponse)request.GetResponse();
+
+                using (Stream stream = response.GetResponseStream())
+                {
+                    if (responseCallback != null)
+                    {
+                        return;
+                    }
+
+                    long totalContentRead = 0;
+                    int contentReadThisRound = 0;
+
+                    int readThisLoop = 0;
+                    List<byte> allContent = new List<byte>();
+
+                    do
+                    {
+                        byte[] buffer = new byte[blockSize];
+
+                        readThisLoop = stream.Read(buffer, contentReadThisRound, blockSize - contentReadThisRound);
+
+                        if(completionOption == HttpCompletionOption.AllResponseContent)
+                        {
+                            allContent.AddRange(buffer);
+                        }
+
+                        contentReadThisRound += readThisLoop;
+
+                        if ((completionOption == HttpCompletionOption.StreamResponseContent && contentReadThisRound == blockSize) || readThisLoop == 0)
+                        {
+                            totalContentRead += contentReadThisRound;
+
+                            responseCallback(new HttpResponseMessage<byte[]>()
+                            {
+                                OriginalRequest = request,
+                                OriginalResponse = response,
+                                Data = completionOption == HttpCompletionOption.AllResponseContent ? allContent.ToArray() : buffer,
+                                ContentLength = response.ContentLength,
+                                ContentReadThisRound = contentReadThisRound,
+                                TotalContentRead = totalContentRead,
+                                StatusCode = response.StatusCode,
+                                ReasonPhrase = response.StatusDescription
+                            });
+
+                            contentReadThisRound = 0;
+                        }
+                    } while (readThisLoop > 0);
+                }
+            }
+            catch (Exception e)
+            {
+                RaiseErrorResponse(responseCallback, e, request, response);
+            }
+        }
+
+        private void RaiseErrorResponse<T>(Action<HttpResponseMessage<T>> action, Exception exception, HttpWebRequest request, HttpWebResponse response)
+        {
+            if (action != null)
+            {
+                action(new HttpResponseMessage<T>()
+                {
+                    OriginalRequest = request,
+                    OriginalResponse = response,
+                    Exception = exception,
+                    StatusCode = GetStatusCode(exception, response),
+                    ReasonPhrase = GetReasonPhrase(exception, response)
+                });
+            }
+        }
+
+        private HttpStatusCode GetStatusCode(Exception exception, HttpWebResponse response)
+        {
+            if(response != null)
+            {
+                return response.StatusCode;
+            }
+
+            if(exception.Message.Contains("The remote server returned an error:"))
+            {
+                int statusCode = 0;
+
+                Match match = Regex.Match(exception.Message, "\\(([0-9]+)\\)");
+
+                if (match.Groups.Count == 2 && int.TryParse(match.Groups[1].Value, out statusCode))
+                {
+                    return (HttpStatusCode)statusCode;
+                }
+            }
+
+            return HttpStatusCode.InternalServerError;
+        }
+
+        private string GetReasonPhrase(Exception exception, HttpWebResponse response)
+        {
+            if (response != null)
+            {
+                return response.StatusDescription;
+            }
+
+            if (exception.Message.Contains("The remote server returned an error:"))
+            {
+                Match match = Regex.Match(exception.Message, "\\([0-9]+\\) (.+)");
+
+                if (match.Groups.Count == 2)
+                {
+                    return match.Groups[1].Value;
+                }
+            }
+
+            return "Unknown";
+        }
+    }
+}
