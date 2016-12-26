@@ -36,6 +36,7 @@ namespace CI.HttpClient
         {
             long contentLength = content.GetContentLength();
             long totalContentUploaded = 0;
+            int singleContentCount = 0;
             MultipartContent multipartContent = content as MultipartContent;
 
             foreach (IHttpContent singleContent in multipartContent)
@@ -53,27 +54,27 @@ namespace CI.HttpClient
                 stream.Write(multipartContent.CRLFBytes, 0, multipartContent.CRLFBytes.Length);
                 totalContentUploaded += multipartContent.CRLFBytes.Length;
 
-                WriteSingleContent(stream, singleContent, uploadStatusCallback, blockSize, contentLength, totalContentUploaded);
+                totalContentUploaded += WriteSingleContent(stream, singleContent, uploadStatusCallback, blockSize, contentLength, totalContentUploaded);
 
                 stream.Write(multipartContent.CRLFBytes, 0, multipartContent.CRLFBytes.Length);
                 totalContentUploaded += multipartContent.CRLFBytes.Length;
+
+                singleContentCount++;
+            }
+
+            if(singleContentCount == 0)
+            {
+                stream.Write(multipartContent.BoundaryStartBytes, 0, multipartContent.BoundaryStartBytes.Length);
+                totalContentUploaded += multipartContent.BoundaryStartBytes.Length;
             }
 
             stream.Write(multipartContent.BoundaryEndBytes, 0, multipartContent.BoundaryEndBytes.Length);
             totalContentUploaded += multipartContent.BoundaryEndBytes.Length;
 
-            if (uploadStatusCallback != null)
-            {
-                uploadStatusCallback(new UploadStatusMessage()
-                {
-                    ContentLength = contentLength,
-                    ContentUploadedThisRound = (multipartContent.CRLFBytes.Length * 2) + multipartContent.BoundaryEndBytes.Length,
-                    TotalContentUploaded = totalContentUploaded
-                });
-            }
+            RaiseUploadStatusCallback(uploadStatusCallback, contentLength, (multipartContent.CRLFBytes.Length * 2) + multipartContent.BoundaryEndBytes.Length, totalContentUploaded);
         }
 
-        private void WriteSingleContent(Stream stream, IHttpContent content, Action<UploadStatusMessage> uploadStatusCallback, int blockSize, long overallContentLength, long totalContentUploadedOverall)
+        private long WriteSingleContent(Stream stream, IHttpContent content, Action<UploadStatusMessage> uploadStatusCallback, int blockSize, long overallContentLength, long totalContentUploadedOverall)
         {
             long contentLength = content.GetContentLength();
             int contentUploadedThisRound = 0;
@@ -122,18 +123,24 @@ namespace CI.HttpClient
                 totalContentUploaded += contentUploadedThisRound;
                 totalContentUploadedOverall += contentUploadedThisRound;
 
-                if (uploadStatusCallback != null)
-                {
-                    uploadStatusCallback(new UploadStatusMessage()
-                    {
-                        ContentLength = overallContentLength,
-                        ContentUploadedThisRound = contentUploadedThisRound,
-                        TotalContentUploaded = totalContentUploadedOverall
-                    });
-                }
+                RaiseUploadStatusCallback(uploadStatusCallback, overallContentLength, contentUploadedThisRound, totalContentUploadedOverall);
             }
+
+            return totalContentUploaded;
         }
 
+        private void RaiseUploadStatusCallback(Action<UploadStatusMessage> uploadStatusCallback, long contentLength, long contentUploadedThisRound, long totalContentUploaded)
+        {
+            if (uploadStatusCallback != null)
+            {
+                uploadStatusCallback(new UploadStatusMessage()
+                {
+                    ContentLength = contentLength,
+                    ContentUploadedThisRound = contentUploadedThisRound,
+                    TotalContentUploaded = totalContentUploaded
+                });
+            }
+        }
 
         protected void HandleStringResponseRead(Action<HttpResponseMessage<string>> responseCallback, HttpWebRequest request)
         {
@@ -150,17 +157,7 @@ namespace CI.HttpClient
                         return;
                     }
 
-                    responseCallback(new HttpResponseMessage<string>()
-                    {
-                        OriginalRequest = request,
-                        OriginalResponse = response,
-                        Data = streamReader.ReadToEnd(),
-                        ContentLength = response.ContentLength,
-                        ContentReadThisRound = response.ContentLength,
-                        TotalContentRead = response.ContentLength,
-                        StatusCode = response.StatusCode,
-                        ReasonPhrase = response.StatusDescription
-                    });
+                    RaiseResponseCallback(responseCallback, request, response, streamReader.ReadToEnd(), response.ContentLength, response.ContentLength);
                 }
             }
             catch (Exception e)
@@ -179,7 +176,7 @@ namespace CI.HttpClient
 
                 using (Stream stream = response.GetResponseStream())
                 {
-                    if (responseCallback != null)
+                    if (responseCallback == null)
                     {
                         return;
                     }
@@ -207,17 +204,8 @@ namespace CI.HttpClient
                         {
                             totalContentRead += contentReadThisRound;
 
-                            responseCallback(new HttpResponseMessage<byte[]>()
-                            {
-                                OriginalRequest = request,
-                                OriginalResponse = response,
-                                Data = completionOption == HttpCompletionOption.AllResponseContent ? allContent.ToArray() : buffer,
-                                ContentLength = response.ContentLength,
-                                ContentReadThisRound = contentReadThisRound,
-                                TotalContentRead = totalContentRead,
-                                StatusCode = response.StatusCode,
-                                ReasonPhrase = response.StatusDescription
-                            });
+                            RaiseResponseCallback(responseCallback, request, response, completionOption == HttpCompletionOption.AllResponseContent ? allContent.ToArray() : buffer, 
+                                contentReadThisRound, totalContentRead);
 
                             contentReadThisRound = 0;
                         }
@@ -228,6 +216,21 @@ namespace CI.HttpClient
             {
                 RaiseErrorResponse(responseCallback, e, request, response);
             }
+        }
+
+        private void RaiseResponseCallback<T>(Action<HttpResponseMessage<T>> responseCallback, HttpWebRequest request, HttpWebResponse response, T data, long contentReadThisRound, long totalContentRead)
+        {
+            responseCallback(new HttpResponseMessage<T>()
+            {
+                OriginalRequest = request,
+                OriginalResponse = response,
+                Data = data,
+                ContentLength = response.ContentLength,
+                ContentReadThisRound = contentReadThisRound,
+                TotalContentRead = totalContentRead,
+                StatusCode = response.StatusCode,
+                ReasonPhrase = response.StatusDescription
+            });
         }
 
         private void RaiseErrorResponse<T>(Action<HttpResponseMessage<T>> action, Exception exception, HttpWebRequest request, HttpWebResponse response)

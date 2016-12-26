@@ -8,9 +8,12 @@ namespace CI.HttpClient
 {
     public class MultipartContent : IHttpContent, IEnumerable<IHttpContent>
     {
+        private const string DEFAULT_SUBTYPE = "form-data";
+
         private readonly List<IHttpContent> _content;
         private readonly string _boundary;
 
+        private string _contentType;
         private long _contentLength;
 
         public byte[] BoundaryStartBytes { get; private set; }
@@ -26,6 +29,7 @@ namespace CI.HttpClient
         {
             _content = new List<IHttpContent>();
             _boundary = Guid.NewGuid().ToString();
+            CreateConentType(DEFAULT_SUBTYPE);
             CreateDelimiters();
         }
 
@@ -33,7 +37,21 @@ namespace CI.HttpClient
         {
             _content = new List<IHttpContent>();
             _boundary = boundary;
+            CreateConentType(DEFAULT_SUBTYPE);
             CreateDelimiters();
+        }
+
+        public MultipartContent(string boundary, string subtype)
+        {
+            _content = new List<IHttpContent>();
+            _boundary = boundary;
+            CreateConentType(subtype);
+            CreateDelimiters();
+        }
+
+        private void CreateConentType(string subtype)
+        {
+            _contentType = "multipart/" + subtype + "; boundary=" + _boundary;
         }
 
         private void CreateDelimiters()
@@ -88,7 +106,7 @@ namespace CI.HttpClient
 
         public string GetContentType()
         {
-            return "multipart/form-data; boundary=" + _boundary;
+            return _contentType;
         }
 
         public byte[] ReadAsByteArray()

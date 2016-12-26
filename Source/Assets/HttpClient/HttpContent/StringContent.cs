@@ -47,7 +47,7 @@ namespace CI.HttpClient
 
         public string GetContentType()
         {
-            return _mediaType;
+            return _mediaType + "; charset=" + _encoding.WebName;
         }
 
         public byte[] ReadAsByteArray()
