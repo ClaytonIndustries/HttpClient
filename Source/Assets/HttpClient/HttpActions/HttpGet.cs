@@ -7,13 +7,13 @@ namespace CI.HttpClient
     {
         public void GetString(Action<HttpResponseMessage<string>> responseCallback, HttpWebRequest request)
         {
-            request.Method = HttpAction.Get.ToString().ToUpper();           
+            SetMethod(request, HttpAction.Get, responseCallback);
             HandleStringResponseRead(responseCallback, request);
         }
 
         public void GetByteArray(HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback, HttpWebRequest request, int blockSize)
         {
-            request.Method = HttpAction.Get.ToString();
+            SetMethod(request, HttpAction.Get, responseCallback);
             HandleByteArrayResponseRead(responseCallback, completionOption, request, blockSize);
         }
     }

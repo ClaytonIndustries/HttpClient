@@ -7,9 +7,8 @@ namespace CI.HttpClient
     {
         public void Put(IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback, HttpWebRequest request, int uploadBlockSize)
         {
-            request.ContentLength = content.GetContentLength();
-            request.ContentType = content.GetContentType();
-            request.Method = HttpAction.Put.ToString().ToUpper();
+            SetContentHeaders(request, content, responseCallback);
+            SetMethod(request, HttpAction.Put, responseCallback);
 
             HandleRequestWrite(responseCallback, request, content, uploadStatusCallback, uploadBlockSize);
             HandleStringResponseRead(responseCallback, request);
@@ -18,9 +17,8 @@ namespace CI.HttpClient
         public void Put(IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback,
             HttpWebRequest request, int downloadBlockSize, int uploadBlockSize)
         {
-            request.ContentLength = content.GetContentLength();
-            request.ContentType = content.GetContentType();
-            request.Method = HttpAction.Put.ToString();
+            SetContentHeaders(request, content, responseCallback);
+            SetMethod(request, HttpAction.Put, responseCallback);
 
             HandleRequestWrite(responseCallback, request, content, uploadStatusCallback, uploadBlockSize);
             HandleByteArrayResponseRead(responseCallback, completionOption, request, downloadBlockSize);

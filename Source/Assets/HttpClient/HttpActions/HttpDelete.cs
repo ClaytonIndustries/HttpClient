@@ -7,13 +7,13 @@ namespace CI.HttpClient
     {
         public void Delete(Action<HttpResponseMessage<string>> responseCallback, HttpWebRequest request)
         {
-            request.Method = HttpAction.Delete.ToString().ToUpper();
+            SetMethod(request, HttpAction.Delete, responseCallback);
             HandleStringResponseRead(responseCallback, request);
         }
 
         public void Delete(HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback, HttpWebRequest request, int blockSize)
         {
-            request.Method = HttpAction.Delete.ToString();
+            SetMethod(request, HttpAction.Delete, responseCallback);
             HandleByteArrayResponseRead(responseCallback, completionOption, request, blockSize);
         }
     }

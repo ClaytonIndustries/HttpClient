@@ -9,6 +9,31 @@ namespace CI.HttpClient
 {
     public abstract class HttpBase
     {
+        protected void SetContentHeaders<T>(HttpWebRequest request, IHttpContent content, Action<HttpResponseMessage<T>> responseCallback)
+        {
+            try
+            {
+                request.ContentLength = content.GetContentLength();
+                request.ContentType = content.GetContentType();
+            }
+            catch(Exception e)
+            {
+                RaiseErrorResponse(responseCallback, e, request, null);
+            }
+        }
+
+        protected void SetMethod<T>(HttpWebRequest request, HttpAction httpAction, Action<HttpResponseMessage<T>> responseCallback)
+        {
+            try
+            {
+                request.Method = httpAction.ToString().ToUpper();
+            }
+            catch (Exception e)
+            {
+                RaiseErrorResponse(responseCallback, e, request, null);
+            }
+        }
+
         protected void HandleRequestWrite<T>(Action<HttpResponseMessage<T>> responseCallback, HttpWebRequest request, IHttpContent content, Action<UploadStatusMessage> uploadStatusCallback, int blockSize)
         {
             try
