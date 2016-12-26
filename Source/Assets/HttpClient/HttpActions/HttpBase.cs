@@ -9,8 +9,7 @@ namespace CI.HttpClient
 {
     public abstract class HttpBase
     {
-        protected void HandleRequestWrite<T>(Action<HttpResponseMessage<T>> responseCallback, HttpWebRequest request, IHttpContent content, Action<UploadStatusMessage> uploadStatusCallback,
-            int blockSize)
+        protected void HandleRequestWrite<T>(Action<HttpResponseMessage<T>> responseCallback, HttpWebRequest request, IHttpContent content, Action<UploadStatusMessage> uploadStatusCallback, int blockSize)
         {
             try
             {
@@ -108,10 +107,6 @@ namespace CI.HttpClient
                     {
                         stream.Write(requestBuffer, 0, contentUploadedThisRound);
                     }
-                    else
-                    {
-                        stream.Close();
-                    }
                 }
                 else
                 {
@@ -193,19 +188,35 @@ namespace CI.HttpClient
 
                         readThisLoop = stream.Read(buffer, contentReadThisRound, blockSize - contentReadThisRound);
 
-                        if(completionOption == HttpCompletionOption.AllResponseContent)
-                        {
-                            allContent.AddRange(buffer);
-                        }
-
                         contentReadThisRound += readThisLoop;
 
-                        if ((completionOption == HttpCompletionOption.StreamResponseContent && contentReadThisRound == blockSize) || readThisLoop == 0)
+                        if(contentReadThisRound == blockSize || readThisLoop == 0)
                         {
                             totalContentRead += contentReadThisRound;
 
-                            RaiseResponseCallback(responseCallback, request, response, completionOption == HttpCompletionOption.AllResponseContent ? allContent.ToArray() : buffer, 
-                                contentReadThisRound, totalContentRead);
+                            byte[] responseData = null;
+
+                            if (buffer.Length > contentReadThisRound)
+                            {
+                                responseData = new byte[contentReadThisRound];
+
+                                Array.Copy(buffer, responseData, contentReadThisRound);
+                            }
+                            else
+                            {
+                                responseData = buffer;
+                            }
+
+                            if(completionOption == HttpCompletionOption.AllResponseContent)
+                            {
+                                allContent.AddRange(responseData);
+                            }
+
+                            if (completionOption == HttpCompletionOption.StreamResponseContent || readThisLoop == 0)
+                            {
+                                RaiseResponseCallback(responseCallback, request, response, completionOption == HttpCompletionOption.AllResponseContent ? allContent.ToArray() : responseData,
+                                    completionOption == HttpCompletionOption.AllResponseContent ? totalContentRead : contentReadThisRound, totalContentRead);
+                            }
 
                             contentReadThisRound = 0;
                         }
