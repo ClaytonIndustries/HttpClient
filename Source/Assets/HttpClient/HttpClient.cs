@@ -45,86 +45,107 @@ namespace CI.HttpClient
             }
         }
 
-        public void DeleteAsync(Uri uri, Action<HttpResponseMessage<string>> responseCallback)
+        public void Delete(Uri uri, Action<HttpResponseMessage<string>> responseCallback)
         {
-            new Thread(new ParameterizedThreadStart((t) =>
+            new Thread(() =>
+            {
+                HttpWebRequest request = CreateRequest(uri);
+                new HttpDelete().Delete(responseCallback, request);
+                RemoveRequest(request);
+            }).Start();
+        }
+
+        public void Delete(Uri uri, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback)
+        {
+            new Thread(() =>
+            {
+                HttpWebRequest request = CreateRequest(uri);
+                new HttpDelete().Delete(completionOption, responseCallback, request, DownloadBlockSize);
+                RemoveRequest(request);
+            }).Start();
+        }
+
+        public void GetString(Uri uri, Action<HttpResponseMessage<string>> responseCallback)
+        {
+            new Thread(() =>
             {
                 HttpWebRequest request = CreateRequest(uri);
                 new HttpGet().GetString(responseCallback, request);
                 RemoveRequest(request);
-            })).Start();
+            }).Start();
         }
 
-        public void DeleteAsync(Uri uri, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback)
+        public void GetByteArray(Uri uri, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback)
         {
-            new Thread(new ParameterizedThreadStart((t) =>
+            new Thread(() =>
             {
                 HttpWebRequest request = CreateRequest(uri);
                 new HttpGet().GetByteArray(completionOption, responseCallback, request, DownloadBlockSize);
                 RemoveRequest(request);
-            })).Start();
+            }).Start();
         }
 
-        public void GetStringAsync(Uri uri, Action<HttpResponseMessage<string>> responseCallback)
+        public void Patch(Uri uri, IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            new Thread(new ParameterizedThreadStart((t) =>
+            new Thread(() =>
             {
                 HttpWebRequest request = CreateRequest(uri);
-                new HttpGet().GetString(responseCallback, request);
+                new HttpPatch().Patch(content, responseCallback, uploadStatusCallback, request, UploadBlockSize);
                 RemoveRequest(request);
-            })).Start();
+            }).Start();
         }
 
-        public void GetByteArrayAsync(Uri uri, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback)
+        public void Patch(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback,
+            Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            new Thread(new ParameterizedThreadStart((t) =>
+            new Thread(() =>
             {
                 HttpWebRequest request = CreateRequest(uri);
-                new HttpGet().GetByteArray(completionOption, responseCallback, request, DownloadBlockSize);
+                new HttpPatch().Patch(content, completionOption, responseCallback, uploadStatusCallback, request, DownloadBlockSize, UploadBlockSize);
                 RemoveRequest(request);
-            })).Start();
+            }).Start();
         }
 
-        public void PostAsync(Uri uri, IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback = null)
+        public void Post(Uri uri, IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            new Thread(new ParameterizedThreadStart((t) =>
+            new Thread(() =>
             {
                 HttpWebRequest request = CreateRequest(uri);
                 new HttpPost().Post(content, responseCallback, uploadStatusCallback, request, UploadBlockSize);
                 RemoveRequest(request);
-            })).Start();
+            }).Start();
         }
 
-        public void PostAsync(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback,
+        public void Post(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback,
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            new Thread(new ParameterizedThreadStart((t) =>
+            new Thread(() =>
             {
                 HttpWebRequest request = CreateRequest(uri);
-                new HttpPost().Post(content, completionOption, responseCallback, uploadStatusCallback, request, UploadBlockSize);
+                new HttpPost().Post(content, completionOption, responseCallback, uploadStatusCallback, request, DownloadBlockSize, UploadBlockSize);
                 RemoveRequest(request);
-            })).Start();
+            }).Start();
         }
 
-        public void PutAsync(Uri uri, IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback = null)
+        public void Put(Uri uri, IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            new Thread(new ParameterizedThreadStart((t) =>
+            new Thread(() =>
             {
                 HttpWebRequest request = CreateRequest(uri);
-                new HttpPost().Post(content, responseCallback, uploadStatusCallback, request, UploadBlockSize);
+                new HttpPut().Put(content, responseCallback, uploadStatusCallback, request, UploadBlockSize);
                 RemoveRequest(request);
-            })).Start();
+            }).Start();
         }
 
-        public void PutAsync(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback,
+        public void Put(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback,
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            new Thread(new ParameterizedThreadStart((t) =>
+            new Thread(() =>
             {
                 HttpWebRequest request = CreateRequest(uri);
-                new HttpPost().Post(content, completionOption, responseCallback, uploadStatusCallback, request, UploadBlockSize);
+                new HttpPut().Put(content, completionOption, responseCallback, uploadStatusCallback, request, DownloadBlockSize, UploadBlockSize);
                 RemoveRequest(request);
-            })).Start();
+            }).Start();
         }
 
         private HttpWebRequest CreateRequest(Uri uri)

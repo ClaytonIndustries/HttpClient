@@ -14,6 +14,11 @@ namespace CI.HttpClient
 
         private byte[] _serialisedContent;
 
+        public ContentReadAction ContentReadAction
+        {
+            get { return ContentReadAction.ByteArray; }
+        }
+
         public StringContent(string content)
         {
             _content = content;
@@ -35,7 +40,7 @@ namespace CI.HttpClient
             _mediaType = mediaType;
         }
 
-        public int GetContentLength()
+        public long GetContentLength()
         {
             return ReadAsByteArray().Length;
         }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace CI.HttpClient
@@ -15,64 +16,13 @@ namespace CI.HttpClient
             {
                 using (Stream stream = request.GetRequestStream())
                 {
-                    int contentLength = content.GetContentLength();
-                    int totalContentUploaded = 0;
-                    int contentUploadedThisRound = 0;
-                    bool streamContent = content is StreamContent;
-                    byte[] requestBuffer = null;
-                    Stream contentStream = null;
-
-                    if (streamContent)
+                    if(content.ContentReadAction == ContentReadAction.Multi)
                     {
-                        requestBuffer = new byte[blockSize];
-                        contentStream = content.ReadAsStream();
+                        WriteMultipleContent(stream, content, uploadStatusCallback, blockSize);
                     }
                     else
                     {
-                        requestBuffer = content.ReadAsByteArray();
-                        blockSize = uploadStatusCallback == null ? contentLength : blockSize;
-                    }
-
-                    while (totalContentUploaded != contentLength)
-                    {
-                        contentUploadedThisRound = 0;
-
-                        if (streamContent)
-                        {
-                            int read = 0;
-                            while ((read = contentStream.Read(requestBuffer, read, blockSize - read)) > 0)
-                            {
-                                contentUploadedThisRound += read;
-                            }
-
-                            if (contentUploadedThisRound > 0)
-                            {
-                                stream.Write(requestBuffer, 0, contentUploadedThisRound);
-                            }
-                        }
-                        else
-                        {
-                            contentUploadedThisRound = blockSize > (requestBuffer.Length - totalContentUploaded) ? (requestBuffer.Length - totalContentUploaded) : blockSize;
-
-                            stream.Write(requestBuffer, totalContentUploaded, contentUploadedThisRound);
-                        }
-
-                        totalContentUploaded += contentUploadedThisRound;
-
-                        if (uploadStatusCallback != null)
-                        {
-                            uploadStatusCallback(new UploadStatusMessage()
-                            {
-                                ContentLength = contentLength,
-                                ContentUploadedThisRound = contentUploadedThisRound,
-                                TotalContentUploaded = totalContentUploaded
-                            });
-                        }
-                    }
-
-                    if (contentStream != null)
-                    {
-                        contentStream.Close();
+                        WriteSingleContent(stream, content, uploadStatusCallback, blockSize, content.GetContentLength(), 0);
                     }
                 }
             }
@@ -81,6 +31,109 @@ namespace CI.HttpClient
                 RaiseErrorResponse(responseCallback, e, request, null);
             }
         }
+
+        private void WriteMultipleContent(Stream stream, IHttpContent content, Action<UploadStatusMessage> uploadStatusCallback, int blockSize)
+        {
+            long contentLength = content.GetContentLength();
+            long totalContentUploaded = 0;
+            MultipartContent multipartContent = content as MultipartContent;
+
+            foreach (IHttpContent singleContent in multipartContent)
+            {
+                byte[] contentHeader = Encoding.UTF8.GetBytes("Content-Type: " + singleContent.GetContentType());
+
+                stream.Write(multipartContent.BoundaryStartBytes, 0, multipartContent.BoundaryStartBytes.Length);
+                totalContentUploaded += multipartContent.BoundaryStartBytes.Length;
+
+                stream.Write(contentHeader, 0, contentHeader.Length);
+                totalContentUploaded += contentHeader.Length;
+
+                stream.Write(multipartContent.CRLFBytes, 0, multipartContent.CRLFBytes.Length);
+                totalContentUploaded += multipartContent.CRLFBytes.Length;
+                stream.Write(multipartContent.CRLFBytes, 0, multipartContent.CRLFBytes.Length);
+                totalContentUploaded += multipartContent.CRLFBytes.Length;
+
+                WriteSingleContent(stream, singleContent, uploadStatusCallback, blockSize, contentLength, totalContentUploaded);
+
+                stream.Write(multipartContent.CRLFBytes, 0, multipartContent.CRLFBytes.Length);
+                totalContentUploaded += multipartContent.CRLFBytes.Length;
+            }
+
+            stream.Write(multipartContent.BoundaryEndBytes, 0, multipartContent.BoundaryEndBytes.Length);
+            totalContentUploaded += multipartContent.BoundaryEndBytes.Length;
+
+            if (uploadStatusCallback != null)
+            {
+                uploadStatusCallback(new UploadStatusMessage()
+                {
+                    ContentLength = contentLength,
+                    ContentUploadedThisRound = (multipartContent.CRLFBytes.Length * 2) + multipartContent.BoundaryEndBytes.Length,
+                    TotalContentUploaded = totalContentUploaded
+                });
+            }
+        }
+
+        private void WriteSingleContent(Stream stream, IHttpContent content, Action<UploadStatusMessage> uploadStatusCallback, int blockSize, long overallContentLength, long totalContentUploadedOverall)
+        {
+            long contentLength = content.GetContentLength();
+            int contentUploadedThisRound = 0;
+            int totalContentUploaded = 0;
+            byte[] requestBuffer = null;
+            Stream contentStream = null;
+
+            if (content.ContentReadAction == ContentReadAction.Stream)
+            {
+                requestBuffer = new byte[blockSize];
+                contentStream = content.ReadAsStream();
+            }
+            else
+            {
+                requestBuffer = content.ReadAsByteArray();
+            }
+
+            while (totalContentUploaded != contentLength)
+            {
+                contentUploadedThisRound = 0;
+
+                if (content.ContentReadAction == ContentReadAction.Stream)
+                {
+                    int read = 0;
+                    while ((read = contentStream.Read(requestBuffer, read, blockSize - read)) > 0)
+                    {
+                        contentUploadedThisRound += read;
+                    }
+
+                    if (contentUploadedThisRound > 0)
+                    {
+                        stream.Write(requestBuffer, 0, contentUploadedThisRound);
+                    }
+                    else
+                    {
+                        stream.Close();
+                    }
+                }
+                else
+                {
+                    contentUploadedThisRound = blockSize > (requestBuffer.Length - totalContentUploaded) ? (requestBuffer.Length - totalContentUploaded) : blockSize;
+
+                    stream.Write(requestBuffer, totalContentUploaded, contentUploadedThisRound);
+                }
+
+                totalContentUploaded += contentUploadedThisRound;
+                totalContentUploadedOverall += contentUploadedThisRound;
+
+                if (uploadStatusCallback != null)
+                {
+                    uploadStatusCallback(new UploadStatusMessage()
+                    {
+                        ContentLength = overallContentLength,
+                        ContentUploadedThisRound = contentUploadedThisRound,
+                        TotalContentUploaded = totalContentUploadedOverall
+                    });
+                }
+            }
+        }
+
 
         protected void HandleStringResponseRead(Action<HttpResponseMessage<string>> responseCallback, HttpWebRequest request)
         {

@@ -8,15 +8,20 @@ namespace CI.HttpClient
         private readonly Stream _stream;
         private readonly string _mediaType;
 
+        public ContentReadAction ContentReadAction
+        {
+            get { return ContentReadAction.Stream; }
+        }
+
         public StreamContent(Stream stream, string mediaType)
         {
             _stream = stream;
             _mediaType = mediaType;
         }
 
-        public int GetContentLength()
+        public long GetContentLength()
         {
-            return (int)_stream.Length;
+            return _stream.Length;
         }
 
         public string GetContentType()

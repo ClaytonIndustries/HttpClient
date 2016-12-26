@@ -5,6 +5,7 @@ namespace CI.HttpClient
     {
         Delete,
         Get,
+        Patch,
         Post,
         Put
     }

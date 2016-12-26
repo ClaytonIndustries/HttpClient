@@ -11,12 +11,17 @@ namespace CI.HttpClient
 
         private byte[] _serialisedContent;
 
+        public ContentReadAction ContentReadAction
+        {
+            get { return ContentReadAction.ByteArray; }
+        }
+
         public FormUrlEncodedContent(IEnumerable<KeyValuePair<string, string>> nameValueCollection)
         {
             _nameValueCollection = nameValueCollection;
         }
 
-        public int GetContentLength()
+        public long GetContentLength()
         {
             return ReadAsByteArray().Length;
         }

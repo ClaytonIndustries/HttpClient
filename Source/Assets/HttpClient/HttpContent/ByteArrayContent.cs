@@ -15,7 +15,12 @@ namespace CI.HttpClient
             _mediaType = mediaType;
         }
 
-        public int GetContentLength()
+        public ContentReadAction ContentReadAction
+        {
+            get { return ContentReadAction.ByteArray; }
+        }
+
+        public long GetContentLength()
         {
             return _content.Length;
         }
