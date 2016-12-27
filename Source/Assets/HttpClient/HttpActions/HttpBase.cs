@@ -224,16 +224,19 @@ namespace CI.HttpClient
 
         private void RaiseResponseCallback<T>(Action<HttpResponseMessage<T>> responseCallback, T data, long contentReadThisRound, long totalContentRead)
         {
-            responseCallback(new HttpResponseMessage<T>()
+            Dispatcher.Instance().Enqueue(() =>
             {
-                OriginalRequest = _request,
-                OriginalResponse = _response,
-                Data = data,
-                ContentLength = _response.ContentLength,
-                ContentReadThisRound = contentReadThisRound,
-                TotalContentRead = totalContentRead,
-                StatusCode = _response.StatusCode,
-                ReasonPhrase = _response.StatusDescription
+                responseCallback(new HttpResponseMessage<T>()
+                {
+                    OriginalRequest = _request,
+                    OriginalResponse = _response,
+                    Data = data,
+                    ContentLength = _response.ContentLength,
+                    ContentReadThisRound = contentReadThisRound,
+                    TotalContentRead = totalContentRead,
+                    StatusCode = _response.StatusCode,
+                    ReasonPhrase = _response.StatusDescription
+                });
             });
         }
 
@@ -241,13 +244,16 @@ namespace CI.HttpClient
         {
             if (action != null)
             {
-                action(new HttpResponseMessage<T>()
+                Dispatcher.Instance().Enqueue(() =>
                 {
-                    OriginalRequest = _request,
-                    OriginalResponse = _response,
-                    Exception = exception,
-                    StatusCode = GetStatusCode(exception, _response),
-                    ReasonPhrase = GetReasonPhrase(exception, _response)
+                    action(new HttpResponseMessage<T>()
+                    {
+                        OriginalRequest = _request,
+                        OriginalResponse = _response,
+                        Exception = exception,
+                        StatusCode = GetStatusCode(exception, _response),
+                        ReasonPhrase = GetReasonPhrase(exception, _response)
+                    });
                 });
             }
         }

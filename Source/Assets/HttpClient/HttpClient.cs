@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Cache;
 using System.Threading;
+using UnityEngine;
 
 namespace CI.HttpClient
 {
@@ -55,6 +56,8 @@ namespace CI.HttpClient
         private readonly List<HttpWebRequest> _requests;
         private readonly object _lock;
 
+        private static GameObject _dispatcher;
+
         /// <summary>
         /// Provides a class for sending HTTP requests and receiving HTTP responses from a resource identified by a URI
         /// </summary>
@@ -66,6 +69,7 @@ namespace CI.HttpClient
             ReadWriteTimoeut = DEFAULT_READ_WRITE_TIMEOUT;
             _requests = new List<HttpWebRequest>();
             _lock = new object();
+            CreateDispatcherGameObject();
         }
 
         /// <summary>
@@ -398,10 +402,22 @@ namespace CI.HttpClient
         {
             if (action != null)
             {
-                action(new HttpResponseMessage<T>()
+                Dispatcher.Instance().Enqueue(() =>
                 {
-                    Exception = exception,
+                    action(new HttpResponseMessage<T>()
+                    {
+                        Exception = exception,
+                    });
                 });
+            }
+        }
+
+        private void CreateDispatcherGameObject()
+        {
+            if(_dispatcher == null)
+            {
+                _dispatcher = new GameObject("Dispatcher");
+                _dispatcher.AddComponent<Dispatcher>();
             }
         }
     }
