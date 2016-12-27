@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Cache;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using UnityEngine;
 
@@ -37,6 +38,11 @@ namespace CI.HttpClient
         /// The cache policy
         /// </summary>
         public RequestCachePolicy Cache { get; set; }
+
+        /// <summary>
+        /// The collection of security certificates that are associated with this request
+        /// </summary>
+        public X509CertificateCollection Certificates { get; set; }
 
         /// <summary>
         /// Authentication information 
@@ -342,6 +348,7 @@ namespace CI.HttpClient
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
             AddCache(request);
+            AddCertificates(request);
             AddCredentials(request);
             AddHeaders(request);
             AddProxy(request);
@@ -355,6 +362,14 @@ namespace CI.HttpClient
             if (Cache != null)
             {
                 request.CachePolicy = Cache;
+            }
+        }
+
+        private void AddCertificates(HttpWebRequest request)
+        {
+            if(Certificates != null)
+            {
+                request.ClientCertificates = Certificates;
             }
         }
 
