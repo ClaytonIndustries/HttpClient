@@ -4,7 +4,7 @@ namespace CI.HttpClient
     public enum HttpCompletionOption
     {
         /// <summary>
-        /// Read all response content without rasing progress updates
+        /// Read all response content without raising progress updates
         /// </summary>
         AllResponseContent,
         /// <summary>

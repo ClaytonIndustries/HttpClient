@@ -136,11 +136,14 @@ namespace CI.HttpClient
         {
             if (uploadStatusCallback != null)
             {
-                uploadStatusCallback(new UploadStatusMessage()
+                _dispatcher.Enqueue(() =>
                 {
-                    ContentLength = contentLength,
-                    ContentUploadedThisRound = contentUploadedThisRound,
-                    TotalContentUploaded = totalContentUploaded
+                    uploadStatusCallback(new UploadStatusMessage()
+                    {
+                        ContentLength = contentLength,
+                        ContentUploadedThisRound = contentUploadedThisRound,
+                        TotalContentUploaded = totalContentUploaded
+                    });
                 });
             }
         }
