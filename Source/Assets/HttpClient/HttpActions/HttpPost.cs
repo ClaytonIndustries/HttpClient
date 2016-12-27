@@ -5,9 +5,10 @@ namespace CI.HttpClient
 {
     public class HttpPost : HttpBase
     {
-        public HttpPost(HttpWebRequest request)
+        public HttpPost(HttpWebRequest request, IDispatcher dispatcher)
         {
             _request = request;
+            _dispatcher = dispatcher;
         }
 
         public void Post(IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback, int uploadBlockSize)

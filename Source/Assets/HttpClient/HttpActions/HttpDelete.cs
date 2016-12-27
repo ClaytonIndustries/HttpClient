@@ -5,9 +5,10 @@ namespace CI.HttpClient
 {
     public class HttpDelete : HttpBase
     {
-        public HttpDelete(HttpWebRequest request)
+        public HttpDelete(HttpWebRequest request, IDispatcher dispatcher)
         {
             _request = request;
+            _dispatcher = dispatcher;
         }
 
         public void Delete(Action<HttpResponseMessage<string>> responseCallback)

@@ -11,6 +11,7 @@ namespace CI.HttpClient
     {
         protected HttpWebRequest _request;
         protected HttpWebResponse _response;
+        protected IDispatcher _dispatcher;
 
         protected void SetMethod(HttpAction httpAction)
         {
@@ -224,7 +225,7 @@ namespace CI.HttpClient
 
         private void RaiseResponseCallback<T>(Action<HttpResponseMessage<T>> responseCallback, T data, long contentReadThisRound, long totalContentRead)
         {
-            Dispatcher.Instance().Enqueue(() =>
+            _dispatcher.Enqueue(() =>
             {
                 responseCallback(new HttpResponseMessage<T>()
                 {
@@ -244,7 +245,7 @@ namespace CI.HttpClient
         {
             if (action != null)
             {
-                Dispatcher.Instance().Enqueue(() =>
+                _dispatcher.Enqueue(() =>
                 {
                     action(new HttpResponseMessage<T>()
                     {

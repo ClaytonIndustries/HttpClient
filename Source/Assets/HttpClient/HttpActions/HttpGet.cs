@@ -5,9 +5,10 @@ namespace CI.HttpClient
 {
     public class HttpGet : HttpBase
     {
-        public HttpGet(HttpWebRequest request)
+        public HttpGet(HttpWebRequest request, IDispatcher dispatcher)
         {
             _request = request;
+            _dispatcher = dispatcher;
         }
 
         public void GetString(Action<HttpResponseMessage<string>> responseCallback)

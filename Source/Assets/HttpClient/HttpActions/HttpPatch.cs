@@ -5,9 +5,10 @@ namespace CI.HttpClient
 {
     public class HttpPatch : HttpBase
     {
-        public HttpPatch(HttpWebRequest request)
+        public HttpPatch(HttpWebRequest request, IDispatcher dispatcher)
         {
             _request = request;
+            _dispatcher = dispatcher;
         }
 
         public void Patch(IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback, int uploadBlockSize)
