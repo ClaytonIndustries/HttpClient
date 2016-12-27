@@ -5,23 +5,42 @@ namespace CI.HttpClient
 {
     public class HttpPatch : HttpBase
     {
-        public void Patch(IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback, HttpWebRequest request, int uploadBlockSize)
+        public HttpPatch(HttpWebRequest request)
         {
-            SetContentHeaders(request, content, responseCallback);
-            SetMethod(request, HttpAction.Patch, responseCallback);
-
-            HandleRequestWrite(responseCallback, request, content, uploadStatusCallback, uploadBlockSize);
-            HandleStringResponseRead(responseCallback, request);
+            _request = request;
         }
 
-        public void Patch(IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback,
-            HttpWebRequest request, int downloadBlockSize, int uploadBlockSize)
+        public void Patch(IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback, int uploadBlockSize)
         {
-            SetContentHeaders(request, content, responseCallback);
-            SetMethod(request, HttpAction.Patch, responseCallback);
+            try
+            {
+                SetMethod(HttpAction.Patch);
+                SetContentHeaders(content);
 
-            HandleRequestWrite(responseCallback, request, content, uploadStatusCallback, uploadBlockSize);
-            HandleByteArrayResponseRead(responseCallback, completionOption, request, downloadBlockSize);
+                HandleRequestWrite(content, uploadStatusCallback, uploadBlockSize);
+                HandleStringResponseRead(responseCallback);
+            }
+            catch (Exception e)
+            {
+                RaiseErrorResponse(responseCallback, e);
+            }
+        }
+
+        public void Patch(IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback, 
+            int downloadBlockSize, int uploadBlockSize)
+        {
+            try
+            {
+                SetMethod(HttpAction.Patch);
+                SetContentHeaders(content);
+
+                HandleRequestWrite(content, uploadStatusCallback, uploadBlockSize);
+                HandleByteArrayResponseRead(responseCallback, completionOption, downloadBlockSize);
+            }
+            catch (Exception e)
+            {
+                RaiseErrorResponse(responseCallback, e);
+            }
         }
     }
 }

@@ -94,7 +94,7 @@ namespace CI.HttpClient
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpDelete().Delete(responseCallback, request);
+                    new HttpDelete(request).Delete(responseCallback);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -112,19 +112,19 @@ namespace CI.HttpClient
         /// <param name="responseCallback">Callback raised once the request completes</param>
         public void Delete(Uri uri, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback)
         {
-            try
+            new Thread(() =>
             {
-                new Thread(() =>
+                try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpDelete().Delete(completionOption, responseCallback, request, DownloadBlockSize);
+                    new HttpDelete(request).Delete(completionOption, responseCallback, DownloadBlockSize);
                     RemoveRequest(request);
-                }).Start();
-            }
-            catch (Exception e)
-            {
-                RaiseErrorResponse(responseCallback, e);
-            }
+                }
+                catch (Exception e)
+                {
+                    RaiseErrorResponse(responseCallback, e);
+                }
+            }).Start();
         }
 
         /// <summary>
@@ -134,19 +134,19 @@ namespace CI.HttpClient
         /// <param name="responseCallback">Callback raised once the request completes</param>
         public void GetString(Uri uri, Action<HttpResponseMessage<string>> responseCallback)
         {
-            try
+            new Thread(() =>
             {
-                new Thread(() =>
+                try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpGet().GetString(responseCallback, request);
+                    new HttpGet(request).GetString(responseCallback);
                     RemoveRequest(request);
-                }).Start();
-            }
-            catch (Exception e)
-            {
-                RaiseErrorResponse(responseCallback, e);
-            }
+                }
+                catch (Exception e)
+                {
+                    RaiseErrorResponse(responseCallback, e);
+                }
+            }).Start();
         }
 
         /// <summary>
@@ -157,19 +157,19 @@ namespace CI.HttpClient
         /// <param name="responseCallback">Callback raised once the request completes</param>
         public void GetByteArray(Uri uri, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback)
         {
-            try
+            new Thread(() =>
             {
-                new Thread(() =>
+                try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpGet().GetByteArray(completionOption, responseCallback, request, DownloadBlockSize);
+                    new HttpGet(request).GetByteArray(completionOption, responseCallback, DownloadBlockSize);
                     RemoveRequest(request);
-                }).Start();
-            }
-            catch (Exception e)
-            {
-                RaiseErrorResponse(responseCallback, e);
-            }
+                }
+                catch (Exception e)
+                {
+                    RaiseErrorResponse(responseCallback, e);
+                }
+            }).Start();
         }
 
         /// <summary>
@@ -181,19 +181,19 @@ namespace CI.HttpClient
         /// <param name="uploadStatusCallback">Callback that reports upload progress</param>
         public void Patch(Uri uri, IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            try
+            new Thread(() =>
             {
-                new Thread(() =>
+                try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpPatch().Patch(content, responseCallback, uploadStatusCallback, request, UploadBlockSize);
+                    new HttpPatch(request).Patch(content, responseCallback, uploadStatusCallback, UploadBlockSize);
                     RemoveRequest(request);
-                }).Start();
-            }
-            catch (Exception e)
-            {
-                RaiseErrorResponse(responseCallback, e);
-            }
+                }
+                catch (Exception e)
+                {
+                    RaiseErrorResponse(responseCallback, e);
+                }
+            }).Start();
         }
 
         /// <summary>
@@ -208,19 +208,19 @@ namespace CI.HttpClient
         public void Patch(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback,
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            try
+            new Thread(() =>
             {
-                new Thread(() =>
+                try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpPatch().Patch(content, completionOption, responseCallback, uploadStatusCallback, request, DownloadBlockSize, UploadBlockSize);
+                    new HttpPatch(request).Patch(content, completionOption, responseCallback, uploadStatusCallback, DownloadBlockSize, UploadBlockSize);
                     RemoveRequest(request);
-                }).Start();
-            }
-            catch (Exception e)
-            {
-                RaiseErrorResponse(responseCallback, e);
-            }
+                }
+                catch (Exception e)
+                {
+                    RaiseErrorResponse(responseCallback, e);
+                }
+            }).Start();
         }
 
         /// <summary>
@@ -232,19 +232,19 @@ namespace CI.HttpClient
         /// <param name="uploadStatusCallback">Callback that reports upload progress</param>
         public void Post(Uri uri, IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            try
+            new Thread(() =>
             {
-                new Thread(() =>
+                try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpPost().Post(content, responseCallback, uploadStatusCallback, request, UploadBlockSize);
+                    new HttpPost(request).Post(content, responseCallback, uploadStatusCallback, UploadBlockSize);
                     RemoveRequest(request);
-                }).Start();
-            }
-            catch (Exception e)
-            {
-                RaiseErrorResponse(responseCallback, e);
-            }
+                }
+                catch (Exception e)
+                {
+                    RaiseErrorResponse(responseCallback, e);
+                }
+            }).Start();
         }
 
         /// <summary>
@@ -259,19 +259,19 @@ namespace CI.HttpClient
         public void Post(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback,
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            try
+            new Thread(() =>
             {
-                new Thread(() =>
+                try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpPost().Post(content, completionOption, responseCallback, uploadStatusCallback, request, DownloadBlockSize, UploadBlockSize);
+                    new HttpPost(request).Post(content, completionOption, responseCallback, uploadStatusCallback, DownloadBlockSize, UploadBlockSize);
                     RemoveRequest(request);
-                }).Start();
-            }
-            catch (Exception e)
-            {
-                RaiseErrorResponse(responseCallback, e);
-            }
+                }
+                catch (Exception e)
+                {
+                    RaiseErrorResponse(responseCallback, e);
+                }
+            }).Start();
         }
 
         /// <summary>
@@ -283,19 +283,19 @@ namespace CI.HttpClient
         /// <param name="uploadStatusCallback">Callback that reports upload progress</param>
         public void Put(Uri uri, IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            try
+            new Thread(() =>
             {
-                new Thread(() =>
+                try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpPut().Put(content, responseCallback, uploadStatusCallback, request, UploadBlockSize);
+                    new HttpPut(request).Put(content, responseCallback, uploadStatusCallback, UploadBlockSize);
                     RemoveRequest(request);
-                }).Start();
-            }
-            catch (Exception e)
-            {
-                RaiseErrorResponse(responseCallback, e);
-            }
+                }
+                catch (Exception e)
+                {
+                    RaiseErrorResponse(responseCallback, e);
+                }
+            }).Start();
         }
 
         /// <summary>
@@ -310,19 +310,19 @@ namespace CI.HttpClient
         public void Put(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback,
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            try
+            new Thread(() =>
             {
-                new Thread(() =>
+                try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpPut().Put(content, completionOption, responseCallback, uploadStatusCallback, request, DownloadBlockSize, UploadBlockSize);
+                    new HttpPut(request).Put(content, completionOption, responseCallback, uploadStatusCallback, DownloadBlockSize, UploadBlockSize);
                     RemoveRequest(request);
-                }).Start();
-            }
-            catch (Exception e)
-            {
-                RaiseErrorResponse(responseCallback, e);
-            }
+                }
+                catch (Exception e)
+                {
+                    RaiseErrorResponse(responseCallback, e);
+                }
+            }).Start();
         }
 
         private HttpWebRequest CreateRequest(Uri uri)

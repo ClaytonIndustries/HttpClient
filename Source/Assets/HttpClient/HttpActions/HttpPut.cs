@@ -5,23 +5,42 @@ namespace CI.HttpClient
 {
     public class HttpPut : HttpBase
     {
-        public void Put(IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback, HttpWebRequest request, int uploadBlockSize)
+        public HttpPut(HttpWebRequest request)
         {
-            SetContentHeaders(request, content, responseCallback);
-            SetMethod(request, HttpAction.Put, responseCallback);
+            _request = request;
+        }
 
-            HandleRequestWrite(responseCallback, request, content, uploadStatusCallback, uploadBlockSize);
-            HandleStringResponseRead(responseCallback, request);
+        public void Put(IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback, int uploadBlockSize)
+        {
+            try
+            {
+                SetMethod(HttpAction.Put);
+                SetContentHeaders(content);
+
+                HandleRequestWrite(content, uploadStatusCallback, uploadBlockSize);
+                HandleStringResponseRead(responseCallback);
+            }
+            catch (Exception e)
+            {
+                RaiseErrorResponse(responseCallback, e);
+            }
         }
 
         public void Put(IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback,
-            HttpWebRequest request, int downloadBlockSize, int uploadBlockSize)
+            int downloadBlockSize, int uploadBlockSize)
         {
-            SetContentHeaders(request, content, responseCallback);
-            SetMethod(request, HttpAction.Put, responseCallback);
+            try
+            {
+                SetMethod(HttpAction.Put);
+                SetContentHeaders(content);
 
-            HandleRequestWrite(responseCallback, request, content, uploadStatusCallback, uploadBlockSize);
-            HandleByteArrayResponseRead(responseCallback, completionOption, request, downloadBlockSize);
+                HandleRequestWrite(content, uploadStatusCallback, uploadBlockSize);
+                HandleByteArrayResponseRead(responseCallback, completionOption, downloadBlockSize);
+            }
+            catch (Exception e)
+            {
+                RaiseErrorResponse(responseCallback, e);
+            }
         }
     }
 }

@@ -5,16 +5,35 @@ namespace CI.HttpClient
 {
     public class HttpDelete : HttpBase
     {
-        public void Delete(Action<HttpResponseMessage<string>> responseCallback, HttpWebRequest request)
+        public HttpDelete(HttpWebRequest request)
         {
-            SetMethod(request, HttpAction.Delete, responseCallback);
-            HandleStringResponseRead(responseCallback, request);
+            _request = request;
         }
 
-        public void Delete(HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback, HttpWebRequest request, int blockSize)
+        public void Delete(Action<HttpResponseMessage<string>> responseCallback)
         {
-            SetMethod(request, HttpAction.Delete, responseCallback);
-            HandleByteArrayResponseRead(responseCallback, completionOption, request, blockSize);
+            try
+            {
+                SetMethod(HttpAction.Delete);
+                HandleStringResponseRead(responseCallback);
+            }
+            catch (Exception e)
+            {
+                RaiseErrorResponse(responseCallback, e);
+            }
+        }
+
+        public void Delete(HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback, int blockSize)
+        {
+            try
+            {
+                SetMethod(HttpAction.Delete);
+                HandleByteArrayResponseRead(responseCallback, completionOption, blockSize);
+            }
+            catch (Exception e)
+            {
+                RaiseErrorResponse(responseCallback, e);
+            }
         }
     }
 }

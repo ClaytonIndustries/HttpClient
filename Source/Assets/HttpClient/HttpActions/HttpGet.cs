@@ -5,16 +5,35 @@ namespace CI.HttpClient
 {
     public class HttpGet : HttpBase
     {
-        public void GetString(Action<HttpResponseMessage<string>> responseCallback, HttpWebRequest request)
+        public HttpGet(HttpWebRequest request)
         {
-            SetMethod(request, HttpAction.Get, responseCallback);
-            HandleStringResponseRead(responseCallback, request);
+            _request = request;
         }
 
-        public void GetByteArray(HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback, HttpWebRequest request, int blockSize)
+        public void GetString(Action<HttpResponseMessage<string>> responseCallback)
         {
-            SetMethod(request, HttpAction.Get, responseCallback);
-            HandleByteArrayResponseRead(responseCallback, completionOption, request, blockSize);
+            try
+            {
+                SetMethod(HttpAction.Get);
+                HandleStringResponseRead(responseCallback);
+            }
+            catch (Exception e)
+            {
+                RaiseErrorResponse(responseCallback, e);
+            }
+        }
+
+        public void GetByteArray(HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback, int blockSize)
+        {
+            try
+            {
+                SetMethod(HttpAction.Get);
+                HandleByteArrayResponseRead(responseCallback, completionOption, blockSize);
+            }
+            catch (Exception e)
+            {
+                RaiseErrorResponse(responseCallback, e);
+            }
         }
     }
 }

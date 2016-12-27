@@ -9,50 +9,32 @@ namespace CI.HttpClient
 {
     public abstract class HttpBase
     {
-        protected void SetContentHeaders<T>(HttpWebRequest request, IHttpContent content, Action<HttpResponseMessage<T>> responseCallback)
+        protected HttpWebRequest _request;
+        protected HttpWebResponse _response;
+
+        protected void SetMethod(HttpAction httpAction)
         {
-            try
-            {
-                request.ContentLength = content.GetContentLength();
-                request.ContentType = content.GetContentType();
-            }
-            catch(Exception e)
-            {
-                RaiseErrorResponse(responseCallback, e, request, null);
-            }
+            _request.Method = httpAction.ToString().ToUpper();
         }
 
-        protected void SetMethod<T>(HttpWebRequest request, HttpAction httpAction, Action<HttpResponseMessage<T>> responseCallback)
+        protected void SetContentHeaders(IHttpContent content)
         {
-            try
-            {
-                request.Method = httpAction.ToString().ToUpper();
-            }
-            catch (Exception e)
-            {
-                RaiseErrorResponse(responseCallback, e, request, null);
-            }
+            _request.ContentLength = content.GetContentLength();
+            _request.ContentType = content.GetContentType();
         }
 
-        protected void HandleRequestWrite<T>(Action<HttpResponseMessage<T>> responseCallback, HttpWebRequest request, IHttpContent content, Action<UploadStatusMessage> uploadStatusCallback, int blockSize)
+        protected void HandleRequestWrite(IHttpContent content, Action<UploadStatusMessage> uploadStatusCallback, int blockSize)
         {
-            try
+            using (Stream stream = _request.GetRequestStream())
             {
-                using (Stream stream = request.GetRequestStream())
+                if (content.ContentReadAction == ContentReadAction.Multi)
                 {
-                    if(content.ContentReadAction == ContentReadAction.Multi)
-                    {
-                        WriteMultipleContent(stream, content, uploadStatusCallback, blockSize);
-                    }
-                    else
-                    {
-                        WriteSingleContent(stream, content, uploadStatusCallback, blockSize, content.GetContentLength(), 0);
-                    }
+                    WriteMultipleContent(stream, content, uploadStatusCallback, blockSize);
                 }
-            }
-            catch (Exception e)
-            {
-                RaiseErrorResponse(responseCallback, e, request, null);
+                else
+                {
+                    WriteSingleContent(stream, content, uploadStatusCallback, blockSize, content.GetContentLength(), 0);
+                }
             }
         }
 
@@ -162,124 +144,110 @@ namespace CI.HttpClient
             }
         }
 
-        protected void HandleStringResponseRead(Action<HttpResponseMessage<string>> responseCallback, HttpWebRequest request)
+        protected void HandleStringResponseRead(Action<HttpResponseMessage<string>> responseCallback)
         {
-            HttpWebResponse response = null;
+            HttpWebResponse response = (HttpWebResponse)_request.GetResponse();
 
-            try
+            _response = response;
+
+            using (StreamReader streamReader = new StreamReader(response.GetResponseStream()))
             {
-                response = (HttpWebResponse)request.GetResponse();
-
-                using (StreamReader streamReader = new StreamReader(response.GetResponseStream()))
+                if (responseCallback == null)
                 {
-                    if (responseCallback == null)
-                    {
-                        return;
-                    }
-
-                    RaiseResponseCallback(responseCallback, request, response, streamReader.ReadToEnd(), response.ContentLength, response.ContentLength);
+                    return;
                 }
-            }
-            catch (Exception e)
-            {
-                RaiseErrorResponse(responseCallback, e, request, response);
+
+                RaiseResponseCallback(responseCallback, streamReader.ReadToEnd(), response.ContentLength, response.ContentLength);
             }
         }
 
-        protected void HandleByteArrayResponseRead(Action<HttpResponseMessage<byte[]>> responseCallback, HttpCompletionOption completionOption, HttpWebRequest request, int blockSize)
+        protected void HandleByteArrayResponseRead(Action<HttpResponseMessage<byte[]>> responseCallback, HttpCompletionOption completionOption, int blockSize)
         {
-            HttpWebResponse response = null;
+            HttpWebResponse response = (HttpWebResponse)_request.GetResponse();
 
-            try
+            _response = response;
+
+            using (Stream stream = response.GetResponseStream())
             {
-                response = (HttpWebResponse)request.GetResponse();
-
-                using (Stream stream = response.GetResponseStream())
+                if (responseCallback == null)
                 {
-                    if (responseCallback == null)
+                    return;
+                }
+
+                long totalContentRead = 0;
+                int contentReadThisRound = 0;
+
+                int readThisLoop = 0;
+                List<byte> allContent = new List<byte>();
+
+                do
+                {
+                    byte[] buffer = new byte[blockSize];
+
+                    readThisLoop = stream.Read(buffer, contentReadThisRound, blockSize - contentReadThisRound);
+
+                    contentReadThisRound += readThisLoop;
+
+                    if (contentReadThisRound == blockSize || readThisLoop == 0)
                     {
-                        return;
-                    }
+                        totalContentRead += contentReadThisRound;
 
-                    long totalContentRead = 0;
-                    int contentReadThisRound = 0;
+                        byte[] responseData = null;
 
-                    int readThisLoop = 0;
-                    List<byte> allContent = new List<byte>();
-
-                    do
-                    {
-                        byte[] buffer = new byte[blockSize];
-
-                        readThisLoop = stream.Read(buffer, contentReadThisRound, blockSize - contentReadThisRound);
-
-                        contentReadThisRound += readThisLoop;
-
-                        if(contentReadThisRound == blockSize || readThisLoop == 0)
+                        if (buffer.Length > contentReadThisRound)
                         {
-                            totalContentRead += contentReadThisRound;
+                            responseData = new byte[contentReadThisRound];
 
-                            byte[] responseData = null;
-
-                            if (buffer.Length > contentReadThisRound)
-                            {
-                                responseData = new byte[contentReadThisRound];
-
-                                Array.Copy(buffer, responseData, contentReadThisRound);
-                            }
-                            else
-                            {
-                                responseData = buffer;
-                            }
-
-                            if(completionOption == HttpCompletionOption.AllResponseContent)
-                            {
-                                allContent.AddRange(responseData);
-                            }
-
-                            if (completionOption == HttpCompletionOption.StreamResponseContent || readThisLoop == 0)
-                            {
-                                RaiseResponseCallback(responseCallback, request, response, completionOption == HttpCompletionOption.AllResponseContent ? allContent.ToArray() : responseData,
-                                    completionOption == HttpCompletionOption.AllResponseContent ? totalContentRead : contentReadThisRound, totalContentRead);
-                            }
-
-                            contentReadThisRound = 0;
+                            Array.Copy(buffer, responseData, contentReadThisRound);
                         }
-                    } while (readThisLoop > 0);
-                }
-            }
-            catch (Exception e)
-            {
-                RaiseErrorResponse(responseCallback, e, request, response);
+                        else
+                        {
+                            responseData = buffer;
+                        }
+
+                        if (completionOption == HttpCompletionOption.AllResponseContent)
+                        {
+                            allContent.AddRange(responseData);
+                        }
+
+                        if (completionOption == HttpCompletionOption.StreamResponseContent || readThisLoop == 0)
+                        {
+                            RaiseResponseCallback(responseCallback, completionOption == HttpCompletionOption.AllResponseContent ? allContent.ToArray() : responseData,
+                                completionOption == HttpCompletionOption.AllResponseContent ? totalContentRead : contentReadThisRound, totalContentRead);
+                        }
+
+                        contentReadThisRound = 0;
+                    }
+                } while (readThisLoop > 0);
             }
         }
 
-        private void RaiseResponseCallback<T>(Action<HttpResponseMessage<T>> responseCallback, HttpWebRequest request, HttpWebResponse response, T data, long contentReadThisRound, long totalContentRead)
+        private void RaiseResponseCallback<T>(Action<HttpResponseMessage<T>> responseCallback, T data, long contentReadThisRound, long totalContentRead)
         {
             responseCallback(new HttpResponseMessage<T>()
             {
-                OriginalRequest = request,
-                OriginalResponse = response,
+                OriginalRequest = _request,
+                OriginalResponse = _response,
                 Data = data,
-                ContentLength = response.ContentLength,
+                ContentLength = _response.ContentLength,
                 ContentReadThisRound = contentReadThisRound,
                 TotalContentRead = totalContentRead,
-                StatusCode = response.StatusCode,
-                ReasonPhrase = response.StatusDescription
+                StatusCode = _response.StatusCode,
+                ReasonPhrase = _response.StatusDescription
             });
         }
 
-        private void RaiseErrorResponse<T>(Action<HttpResponseMessage<T>> action, Exception exception, HttpWebRequest request, HttpWebResponse response)
+        protected void RaiseErrorResponse<T>(Action<HttpResponseMessage<T>> action, Exception exception)
         {
             if (action != null)
             {
                 action(new HttpResponseMessage<T>()
                 {
-                    OriginalRequest = request,
-                    OriginalResponse = response,
+                    OriginalRequest = _request,
+                    OriginalResponse = _response,
                     Exception = exception,
-                    StatusCode = GetStatusCode(exception, response),
-                    ReasonPhrase = GetReasonPhrase(exception, response)
+                    StatusCode = GetStatusCode(exception, _response),
+                    ReasonPhrase = GetReasonPhrase(exception, _response)
                 });
             }
         }
