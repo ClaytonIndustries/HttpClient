@@ -37,17 +37,22 @@ namespace CI.HttpClient
         public int ReadWriteTimoeut { get; set; }
 
         /// <summary>
-        /// The cache policy
+        /// The cache policy that will be associated with requests
         /// </summary>
         public RequestCachePolicy Cache { get; set; }
 
         /// <summary>
-        /// The collection of security certificates that are associated with this request
+        /// The collection of security certificates that will be associated with requests
         /// </summary>
         public X509CertificateCollection Certificates { get; set; }
 
         /// <summary>
-        /// Authentication information 
+        /// Cookies that will be associated with requests
+        /// </summary>
+        public CookieContainer Cookies { get; set; }
+
+        /// <summary>
+        /// Authentication information that will be associated with requests
         /// </summary>
         public ICredentials Credentials { get; set; }
 
@@ -62,7 +67,7 @@ namespace CI.HttpClient
         public IDictionary<HttpRequestHeader, string> Headers { get; set; }
 
         /// <summary>
-        /// Proxy information 
+        /// Proxy information that will be associated with requests
         /// </summary>
         public IWebProxy Proxy { get; set; }
 
@@ -358,6 +363,7 @@ namespace CI.HttpClient
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
             AddCache(request);
             AddCertificates(request);
+            AddCookies(request);
             AddCredentials(request);
             AddKeepAlive(request);
             AddHeaders(request);
@@ -380,6 +386,14 @@ namespace CI.HttpClient
             if(Certificates != null)
             {
                 request.ClientCertificates = Certificates;
+            }
+        }
+
+        private void AddCookies(HttpWebRequest request)
+        {
+            if (Cookies != null)
+            {
+                request.CookieContainer = Cookies;
             }
         }
 
