@@ -113,7 +113,7 @@ namespace CI.HttpClient
         public void Delete(Uri uri, Action<HttpResponseMessage<string>> responseCallback)
         {
             CreateDispatcherGameObject();
-            new Thread(() =>
+            ThreadPool.QueueUserWorkItem((t) =>
             {
                 try
                 {
@@ -125,7 +125,7 @@ namespace CI.HttpClient
                 {
                     RaiseErrorResponse(responseCallback, e);
                 }
-            }).Start();
+            });
         }
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace CI.HttpClient
         public void Delete(Uri uri, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback)
         {
             CreateDispatcherGameObject();
-            new Thread(() =>
+            ThreadPool.QueueUserWorkItem((t) =>
             {
                 try
                 {
@@ -149,7 +149,7 @@ namespace CI.HttpClient
                 {
                     RaiseErrorResponse(responseCallback, e);
                 }
-            }).Start();
+            });
         }
 
         /// <summary>
@@ -160,7 +160,7 @@ namespace CI.HttpClient
         public void GetString(Uri uri, Action<HttpResponseMessage<string>> responseCallback)
         {
             CreateDispatcherGameObject();
-            new Thread(() =>
+            ThreadPool.QueueUserWorkItem((t) =>
             {
                 try
                 {
@@ -172,7 +172,7 @@ namespace CI.HttpClient
                 {
                     RaiseErrorResponse(responseCallback, e);
                 }
-            }).Start();
+            });
         }
 
         /// <summary>
@@ -184,7 +184,7 @@ namespace CI.HttpClient
         public void GetByteArray(Uri uri, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback)
         {
             CreateDispatcherGameObject();
-            new Thread(() =>
+            ThreadPool.QueueUserWorkItem((t) =>
             {
                 try
                 {
@@ -196,7 +196,7 @@ namespace CI.HttpClient
                 {
                     RaiseErrorResponse(responseCallback, e);
                 }
-            }).Start();
+            });
         }
 
         /// <summary>
@@ -209,7 +209,7 @@ namespace CI.HttpClient
         public void Patch(Uri uri, IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback = null)
         {
             CreateDispatcherGameObject();
-            new Thread(() =>
+            ThreadPool.QueueUserWorkItem((t) =>
             {
                 try
                 {
@@ -221,7 +221,7 @@ namespace CI.HttpClient
                 {
                     RaiseErrorResponse(responseCallback, e);
                 }
-            }).Start();
+            });
         }
 
         /// <summary>
@@ -237,7 +237,7 @@ namespace CI.HttpClient
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
             CreateDispatcherGameObject();
-            new Thread(() =>
+            ThreadPool.QueueUserWorkItem((t) =>
             {
                 try
                 {
@@ -249,7 +249,7 @@ namespace CI.HttpClient
                 {
                     RaiseErrorResponse(responseCallback, e);
                 }
-            }).Start();
+            });
         }
 
         /// <summary>
@@ -262,7 +262,7 @@ namespace CI.HttpClient
         public void Post(Uri uri, IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback = null)
         {
             CreateDispatcherGameObject();
-            new Thread(() =>
+            ThreadPool.QueueUserWorkItem((t) =>
             {
                 try
                 {
@@ -274,7 +274,7 @@ namespace CI.HttpClient
                 {
                     RaiseErrorResponse(responseCallback, e);
                 }
-            }).Start();
+            });
         }
 
         /// <summary>
@@ -290,7 +290,7 @@ namespace CI.HttpClient
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
             CreateDispatcherGameObject();
-            new Thread(() =>
+            ThreadPool.QueueUserWorkItem((t) =>
             {
                 try
                 {
@@ -302,7 +302,7 @@ namespace CI.HttpClient
                 {
                     RaiseErrorResponse(responseCallback, e);
                 }
-            }).Start();
+            });
         }
 
         /// <summary>
@@ -315,7 +315,7 @@ namespace CI.HttpClient
         public void Put(Uri uri, IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback = null)
         {
             CreateDispatcherGameObject();
-            new Thread(() =>
+            ThreadPool.QueueUserWorkItem((t) =>
             {
                 try
                 {
@@ -327,7 +327,7 @@ namespace CI.HttpClient
                 {
                     RaiseErrorResponse(responseCallback, e);
                 }
-            }).Start();
+            });
         }
 
         /// <summary>
@@ -343,7 +343,7 @@ namespace CI.HttpClient
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
             CreateDispatcherGameObject();
-            new Thread(() =>
+            ThreadPool.QueueUserWorkItem((t) =>
             {
                 try
                 {
@@ -355,7 +355,7 @@ namespace CI.HttpClient
                 {
                     RaiseErrorResponse(responseCallback, e);
                 }
-            }).Start();
+            });
         }
 
         private HttpWebRequest CreateRequest(Uri uri)
