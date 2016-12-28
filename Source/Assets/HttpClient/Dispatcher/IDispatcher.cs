@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CI.HttpClient
+namespace CI.HttpClient.Core
 {
     public interface IDispatcher
     {

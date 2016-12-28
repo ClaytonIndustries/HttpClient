@@ -5,7 +5,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace CI.HttpClient
+namespace CI.HttpClient.Core
 {
     public abstract class HttpBase
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 
-namespace CI.HttpClient
+namespace CI.HttpClient.Core
 {
     public class HttpPut : HttpBase
     {

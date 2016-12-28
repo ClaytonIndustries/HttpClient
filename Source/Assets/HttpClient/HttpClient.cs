@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Cache;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
+using CI.HttpClient.Core;
 using UnityEngine;
 
 namespace CI.HttpClient

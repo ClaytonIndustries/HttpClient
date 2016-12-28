@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace CI.HttpClient
+namespace CI.HttpClient.Core
 {
     public class Dispatcher : MonoBehaviour, IDispatcher
     {
