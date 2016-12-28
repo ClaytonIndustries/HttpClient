@@ -16,6 +16,10 @@ namespace CI.HttpClient
             get { return ContentReadAction.ByteArray; }
         }
 
+        /// <summary>
+        /// Send content encoded as name/value pairs, the Content Type header will be set to application/x-www-form-urlencoded
+        /// </summary>
+        /// <param name="nameValueCollection">The key/value pairs to send</param>
         public FormUrlEncodedContent(IEnumerable<KeyValuePair<string, string>> nameValueCollection)
         {
             _nameValueCollection = nameValueCollection;

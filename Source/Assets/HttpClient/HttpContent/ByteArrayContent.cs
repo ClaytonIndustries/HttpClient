@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.IO;
 
 namespace CI.HttpClient
@@ -9,6 +8,11 @@ namespace CI.HttpClient
         private readonly byte[] _content;
         private readonly string _mediaType;
 
+        /// <summary>
+        /// Send content encoded as a byte array, the specified mediaType sets the Content Type header
+        /// </summary>
+        /// <param name="content">The byte array to send</param>
+        /// <param name="mediaType">The media type</param>
         public ByteArrayContent(byte[] content, string mediaType)
         {
             _content = content;

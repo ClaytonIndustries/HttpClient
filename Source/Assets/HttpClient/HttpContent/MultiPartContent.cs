@@ -25,6 +25,9 @@ namespace CI.HttpClient
             get { return ContentReadAction.Multi; }
         }
 
+        /// <summary>
+        /// Send a combination of different HttpContents with a default boundary and the Content Type as multipart/form-data
+        /// </summary>
         public MultipartContent()
         {
             _content = new List<IHttpContent>();
@@ -33,6 +36,10 @@ namespace CI.HttpClient
             CreateDelimiters();
         }
 
+        /// <summary>
+        /// Send a combination of different HttpContents with the specified boundary and the Content Type as multipart/form-data
+        /// </summary>
+        /// <param name="boundary">A string to separate the contents</param>
         public MultipartContent(string boundary)
         {
             _content = new List<IHttpContent>();
@@ -41,6 +48,11 @@ namespace CI.HttpClient
             CreateDelimiters();
         }
 
+        /// <summary>
+        /// Send a combination of different HttpContents with the specified boundary and the Content Type as multipart/subtype
+        /// </summary>
+        /// <param name="boundary">A string to separate the contents</param>
+        /// <param name="subtype">The subtype</param>
         public MultipartContent(string boundary, string subtype)
         {
             _content = new List<IHttpContent>();
@@ -61,6 +73,10 @@ namespace CI.HttpClient
             BoundaryEndBytes = Encoding.UTF8.GetBytes("--" + _boundary + "--\r\n");
         }
 
+        /// <summary>
+        /// Adds an IHttpContent to this multipart content - do not add MultipartContent
+        /// </summary>
+        /// <param name="content">The IHttpContent</param>
         public void Add(IHttpContent content)
         {
             _content.Add(content);

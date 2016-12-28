@@ -84,7 +84,7 @@ namespace CI.HttpClient
         }
 
         /// <summary>
-        /// The reason for the http response code
+        /// The reason for the http status code
         /// </summary>
         public string ReasonPhrase
         {

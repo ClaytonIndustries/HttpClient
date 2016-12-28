@@ -34,7 +34,7 @@ namespace CI.HttpClient
         /// <summary>
         /// Timeout value in milliseconds when reading or writing data to / from the server. The default value is 300,000 milliseconds (5 minutes)
         /// </summary>
-        public int ReadWriteTimoeut { get; set; }
+        public int ReadWriteTimeout { get; set; }
 
         /// <summary>
         /// The cache policy that will be associated with requests
@@ -84,7 +84,7 @@ namespace CI.HttpClient
             DownloadBlockSize = DEFAULT_BLOCK_SIZE;
             UploadBlockSize = DEFAULT_BLOCK_SIZE;
             Timeout = DEFAULT_TIMEOUT;
-            ReadWriteTimoeut = DEFAULT_READ_WRITE_TIMEOUT;
+            ReadWriteTimeout = DEFAULT_READ_WRITE_TIMEOUT;
             KeepAlive = DEFAULT_KEEP_ALIVE;
             Headers = new Dictionary<HttpRequestHeader, string>();
             _requests = new List<HttpWebRequest>();
@@ -469,7 +469,7 @@ namespace CI.HttpClient
         private void AddTimeouts(HttpWebRequest request)
         {
             request.Timeout = Timeout;
-            request.ReadWriteTimeout = ReadWriteTimoeut;
+            request.ReadWriteTimeout = ReadWriteTimeout;
         }
 
         private void AddRequest(HttpWebRequest request)
