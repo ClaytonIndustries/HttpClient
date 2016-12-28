@@ -14,6 +14,7 @@ namespace CI.HttpClient
         private const int DEFAULT_BLOCK_SIZE = 10000;
         private const int DEFAULT_TIMEOUT = 100000;
         private const int DEFAULT_READ_WRITE_TIMEOUT = 300000;
+        private const bool DEFAULT_KEEP_ALIVE = true;
 
         /// <summary>
         /// Chunk size when downloading data. Default is 10,000 bytes (10 kilobytes)
@@ -51,6 +52,11 @@ namespace CI.HttpClient
         public ICredentials Credentials { get; set; }
 
         /// <summary>
+        /// Indicates whether to make a persistent connection to the Internet resource. The default is true
+        /// </summary>
+        public bool KeepAlive { get; set; }
+
+        /// <summary>
         /// Specifies a collection of the name/value pairs that make up the HTTP headers
         /// </summary>
         public IDictionary<HttpRequestHeader, string> Headers { get; set; }
@@ -74,6 +80,8 @@ namespace CI.HttpClient
             UploadBlockSize = DEFAULT_BLOCK_SIZE;
             Timeout = DEFAULT_TIMEOUT;
             ReadWriteTimoeut = DEFAULT_READ_WRITE_TIMEOUT;
+            KeepAlive = DEFAULT_KEEP_ALIVE;
+            Headers = new Dictionary<HttpRequestHeader, string>();
             _requests = new List<HttpWebRequest>();
             _lock = new object();
         }
@@ -351,6 +359,7 @@ namespace CI.HttpClient
             AddCache(request);
             AddCertificates(request);
             AddCredentials(request);
+            AddKeepAlive(request);
             AddHeaders(request);
             AddProxy(request);
             AddTimeouts(request);
@@ -382,13 +391,55 @@ namespace CI.HttpClient
             }
         }
 
+        private void AddKeepAlive(HttpWebRequest request)
+        {
+            request.KeepAlive = KeepAlive;
+        }
+
         private void AddHeaders(HttpWebRequest request)
         {
             if (Headers != null)
             {
                 foreach (KeyValuePair<HttpRequestHeader, string> header in Headers)
                 {
-                    request.Headers.Add(header.Key, header.Value);
+                    switch(header.Key)
+                    {
+                        case HttpRequestHeader.Accept:
+                            request.Accept = header.Value;
+                            break;
+                        case HttpRequestHeader.Connection:
+                            request.Connection = header.Value;
+                            break;
+                        case HttpRequestHeader.ContentLength:
+                            throw new NotSupportedException("Content Length is set automatically");
+                        case HttpRequestHeader.ContentType:
+                            throw new NotSupportedException("Content Type is set automatically");
+                        case HttpRequestHeader.Expect:
+                            request.Expect = header.Value;
+                            break;
+                        case HttpRequestHeader.Date:
+                            throw new NotSupportedException("Date is automatically set by the system to the current date");
+                        case HttpRequestHeader.Host:
+                            throw new NotSupportedException("Host is automatically set by the system to current host information");
+                        case HttpRequestHeader.IfModifiedSince:
+                            request.IfModifiedSince = DateTime.Parse(header.Value);
+                            break;
+                        case HttpRequestHeader.Range:
+                            int range = int.Parse(header.Value);
+                            request.AddRange(range);
+                            break;                          
+                        case HttpRequestHeader.Referer:
+                            request.Referer = header.Value;
+                            break;
+                        case HttpRequestHeader.TransferEncoding:
+                            throw new NotSupportedException("Transfer Encoding is not currently supported");
+                        case HttpRequestHeader.UserAgent:
+                            request.UserAgent = header.Value;
+                            break;
+                        default:
+                            request.Headers.Add(header.Key, header.Value);
+                            break;
+                    }                 
                 }
             }
         }
