@@ -1,0 +1,5 @@
+var file = StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///5MB.zip")).AsTask().Result;
+var inputStream = file.OpenReadAsync().AsTask().Result;
+var classicStream = inputStream.AsStreamForRead();
+
+FileStream stream = new FileStream("C:\\Users\\mike-\\Documents\\5MB.zip", FileMode.Open);

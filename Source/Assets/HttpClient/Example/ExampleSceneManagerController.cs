@@ -6,6 +6,7 @@ public class ExampleSceneManagerController : MonoBehaviour
 {
     public Text LeftText;
     public Text RightText;
+    public Slider ProgressSlider;
 
     public void Upload()
     {
@@ -16,20 +17,49 @@ public class ExampleSceneManagerController : MonoBehaviour
 
         ByteArrayContent content = new ByteArrayContent(buffer, "application/bytes");
 
+        ProgressSlider.value = 0;
+
         client.Post(new System.Uri("http://httpbin.org/post"), content, HttpCompletionOption.AllResponseContent, (r) =>
         {           
         }, (u) =>
         {
-            LeftText.text = u.PercentageComplete.ToString() + "%";
+            LeftText.text = "Upload: " +  u.PercentageComplete.ToString() + "%";
+            ProgressSlider.value = u.PercentageComplete;
         });
     }
 
     public void Download()
     {
         HttpClient client = new HttpClient();
+
+        ProgressSlider.value = 100;
+
         client.GetByteArray(new System.Uri("http://download.thinkbroadband.com/5MB.zip"), HttpCompletionOption.StreamResponseContent, (r) =>
         {
-            RightText.text = r.PercentageComplete.ToString() + "%";
+            RightText.text = "Download: " + r.PercentageComplete.ToString() + "%";
+            ProgressSlider.value = 100 - r.PercentageComplete;
+        });
+    }
+
+    public void UploadDownload()
+    {
+        HttpClient client = new HttpClient();
+
+        byte[] buffer = new byte[1000000];
+        new System.Random().NextBytes(buffer);
+
+        ByteArrayContent content = new ByteArrayContent(buffer, "application/bytes");
+
+        ProgressSlider.value = 0;
+
+        client.Post(new System.Uri("http://httpbin.org/post"), content, HttpCompletionOption.StreamResponseContent, (r) =>
+        {
+            RightText.text = "Download: " + r.PercentageComplete.ToString() + "%";
+            ProgressSlider.value = 100 - r.PercentageComplete;
+        }, (u) =>
+        {
+            LeftText.text = "Upload: " + u.PercentageComplete.ToString() + "%";
+            ProgressSlider.value = u.PercentageComplete;
         });
     }
 
