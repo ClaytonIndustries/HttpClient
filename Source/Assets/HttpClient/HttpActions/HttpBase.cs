@@ -18,12 +18,36 @@ namespace CI.HttpClient.Core
             _request.Method = httpAction.ToString().ToUpper();
         }
 
+#if NETFX_CORE
+        protected void SetContentHeaders(IHttpContent content)
+        {
+            _request.Headers[HttpRequestHeader.ContentLength] = content.GetContentLength().ToString();
+            _request.ContentType = content.GetContentType();
+        }
+#else
         protected void SetContentHeaders(IHttpContent content)
         {
             _request.ContentLength = content.GetContentLength();
             _request.ContentType = content.GetContentType();
         }
+#endif
 
+#if NETFX_CORE
+        protected void HandleRequestWrite(IHttpContent content, Action<UploadStatusMessage> uploadStatusCallback, int blockSize)
+        {
+            using (Stream stream = _request.GetRequestStreamAsync().Result)
+            {
+                if (content.ContentReadAction == ContentReadAction.Multi)
+                {
+                    WriteMultipleContent(stream, content, uploadStatusCallback, blockSize);
+                }
+                else
+                {
+                    WriteSingleContent(stream, content, uploadStatusCallback, blockSize, content.GetContentLength(), 0);
+                }
+            }
+        }
+#else
         protected void HandleRequestWrite(IHttpContent content, Action<UploadStatusMessage> uploadStatusCallback, int blockSize)
         {
             using (Stream stream = _request.GetRequestStream())
@@ -38,6 +62,7 @@ namespace CI.HttpClient.Core
                 }
             }
         }
+#endif
 
         private void WriteMultipleContent(Stream stream, IHttpContent content, Action<UploadStatusMessage> uploadStatusCallback, int blockSize)
         {
@@ -148,6 +173,24 @@ namespace CI.HttpClient.Core
             }
         }
 
+#if NETFX_CORE
+        protected void HandleStringResponseRead(Action<HttpResponseMessage<string>> responseCallback)
+        {
+            HttpWebResponse response = (HttpWebResponse)_request.GetResponseAsync().Result;
+
+            _response = response;
+
+            using (StreamReader streamReader = new StreamReader(response.GetResponseStream()))
+            {
+                if (responseCallback == null)
+                {
+                    return;
+                }
+
+                RaiseResponseCallback(responseCallback, streamReader.ReadToEnd(), response.ContentLength, response.ContentLength);
+            }
+        }
+#else
         protected void HandleStringResponseRead(Action<HttpResponseMessage<string>> responseCallback)
         {
             HttpWebResponse response = (HttpWebResponse)_request.GetResponse();
@@ -164,7 +207,71 @@ namespace CI.HttpClient.Core
                 RaiseResponseCallback(responseCallback, streamReader.ReadToEnd(), response.ContentLength, response.ContentLength);
             }
         }
+#endif
 
+
+#if NETFX_CORE
+        protected void HandleByteArrayResponseRead(Action<HttpResponseMessage<byte[]>> responseCallback, HttpCompletionOption completionOption, int blockSize)
+        {
+            HttpWebResponse response = (HttpWebResponse)_request.GetResponseAsync().Result;
+
+            _response = response;
+
+            using (Stream stream = response.GetResponseStream())
+            {
+                if (responseCallback == null)
+                {
+                    return;
+                }
+
+                long totalContentRead = 0;
+                int contentReadThisRound = 0;
+
+                int readThisLoop = 0;
+                List<byte> allContent = new List<byte>();
+
+                do
+                {
+                    byte[] buffer = new byte[blockSize];
+
+                    readThisLoop = stream.Read(buffer, contentReadThisRound, blockSize - contentReadThisRound);
+
+                    contentReadThisRound += readThisLoop;
+
+                    if (contentReadThisRound == blockSize || readThisLoop == 0)
+                    {
+                        totalContentRead += contentReadThisRound;
+
+                        byte[] responseData = null;
+
+                        if (buffer.Length > contentReadThisRound)
+                        {
+                            responseData = new byte[contentReadThisRound];
+
+                            Array.Copy(buffer, responseData, contentReadThisRound);
+                        }
+                        else
+                        {
+                            responseData = buffer;
+                        }
+
+                        if (completionOption == HttpCompletionOption.AllResponseContent)
+                        {
+                            allContent.AddRange(responseData);
+                        }
+
+                        if (completionOption == HttpCompletionOption.StreamResponseContent || readThisLoop == 0)
+                        {
+                            RaiseResponseCallback(responseCallback, completionOption == HttpCompletionOption.AllResponseContent ? allContent.ToArray() : responseData,
+                                completionOption == HttpCompletionOption.AllResponseContent ? totalContentRead : contentReadThisRound, totalContentRead);
+                        }
+
+                        contentReadThisRound = 0;
+                    }
+                } while (readThisLoop > 0);
+            }
+        }
+#else
         protected void HandleByteArrayResponseRead(Action<HttpResponseMessage<byte[]>> responseCallback, HttpCompletionOption completionOption, int blockSize)
         {
             HttpWebResponse response = (HttpWebResponse)_request.GetResponse();
@@ -225,6 +332,7 @@ namespace CI.HttpClient.Core
                 } while (readThisLoop > 0);
             }
         }
+#endif
 
         private void RaiseResponseCallback<T>(Action<HttpResponseMessage<T>> responseCallback, T data, long contentReadThisRound, long totalContentRead)
         {

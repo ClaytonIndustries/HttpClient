@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using CI.HttpClient.Core;
+using UnityEngine;
+
+#if NETFX_CORE
+using Windows.System.Threading;
+#else
 using System.Net.Cache;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
-using CI.HttpClient.Core;
-using UnityEngine;
+#endif
 
 namespace CI.HttpClient
 {
@@ -36,6 +41,7 @@ namespace CI.HttpClient
         /// </summary>
         public int ReadWriteTimeout { get; set; }
 
+#if !NETFX_CORE
         /// <summary>
         /// The cache policy that will be associated with requests
         /// </summary>
@@ -45,6 +51,7 @@ namespace CI.HttpClient
         /// The collection of security certificates that will be associated with requests
         /// </summary>
         public X509CertificateCollection Certificates { get; set; }
+#endif
 
         /// <summary>
         /// Cookies that will be associated with requests
@@ -113,7 +120,7 @@ namespace CI.HttpClient
         public void Delete(Uri uri, Action<HttpResponseMessage<string>> responseCallback)
         {
             CreateDispatcherGameObject();
-            ThreadPool.QueueUserWorkItem((t) =>
+            QueueWorkItem((t) =>
             {
                 try
                 {
@@ -137,7 +144,7 @@ namespace CI.HttpClient
         public void Delete(Uri uri, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback)
         {
             CreateDispatcherGameObject();
-            ThreadPool.QueueUserWorkItem((t) =>
+            QueueWorkItem((t) =>
             {
                 try
                 {
@@ -160,7 +167,7 @@ namespace CI.HttpClient
         public void GetString(Uri uri, Action<HttpResponseMessage<string>> responseCallback)
         {
             CreateDispatcherGameObject();
-            ThreadPool.QueueUserWorkItem((t) =>
+            QueueWorkItem((t) =>
             {
                 try
                 {
@@ -184,7 +191,7 @@ namespace CI.HttpClient
         public void GetByteArray(Uri uri, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback)
         {
             CreateDispatcherGameObject();
-            ThreadPool.QueueUserWorkItem((t) =>
+            QueueWorkItem((t) =>
             {
                 try
                 {
@@ -209,7 +216,7 @@ namespace CI.HttpClient
         public void Patch(Uri uri, IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback = null)
         {
             CreateDispatcherGameObject();
-            ThreadPool.QueueUserWorkItem((t) =>
+            QueueWorkItem((t) =>
             {
                 try
                 {
@@ -237,7 +244,7 @@ namespace CI.HttpClient
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
             CreateDispatcherGameObject();
-            ThreadPool.QueueUserWorkItem((t) =>
+            QueueWorkItem((t) =>
             {
                 try
                 {
@@ -262,7 +269,7 @@ namespace CI.HttpClient
         public void Post(Uri uri, IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback = null)
         {
             CreateDispatcherGameObject();
-            ThreadPool.QueueUserWorkItem((t) =>
+            QueueWorkItem((t) =>
             {
                 try
                 {
@@ -290,7 +297,7 @@ namespace CI.HttpClient
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
             CreateDispatcherGameObject();
-            ThreadPool.QueueUserWorkItem((t) =>
+            QueueWorkItem((t) =>
             {
                 try
                 {
@@ -315,7 +322,7 @@ namespace CI.HttpClient
         public void Put(Uri uri, IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback = null)
         {
             CreateDispatcherGameObject();
-            ThreadPool.QueueUserWorkItem((t) =>
+            QueueWorkItem((t) =>
             {
                 try
                 {
@@ -343,7 +350,7 @@ namespace CI.HttpClient
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
             CreateDispatcherGameObject();
-            ThreadPool.QueueUserWorkItem((t) =>
+            QueueWorkItem((t) =>
             {
                 try
                 {
@@ -357,6 +364,18 @@ namespace CI.HttpClient
                 }
             });
         }
+
+#if NETFX_CORE
+        private async void QueueWorkItem(WorkItemHandler action)
+        {
+            await ThreadPool.RunAsync(action);
+        }
+#else
+        private void QueueWorkItem(WaitCallback action)
+        {
+            ThreadPool.QueueUserWorkItem(action);
+        }
+#endif
 
         private HttpWebRequest CreateRequest(Uri uri)
         {
@@ -375,18 +394,22 @@ namespace CI.HttpClient
 
         private void AddCache(HttpWebRequest request)
         {
+#if !NETFX_CORE
             if (Cache != null)
             {
                 request.CachePolicy = Cache;
             }
+#endif
         }
 
         private void AddCertificates(HttpWebRequest request)
         {
-            if(Certificates != null)
+#if !NETFX_CORE
+            if (Certificates != null)
             {
                 request.ClientCertificates = Certificates;
             }
+#endif
         }
 
         private void AddCookies(HttpWebRequest request)
@@ -407,7 +430,9 @@ namespace CI.HttpClient
 
         private void AddKeepAlive(HttpWebRequest request)
         {
+#if !NETFX_CORE
             request.KeepAlive = KeepAlive;
+#endif
         }
 
         private void AddHeaders(HttpWebRequest request)
@@ -416,7 +441,10 @@ namespace CI.HttpClient
             {
                 foreach (KeyValuePair<HttpRequestHeader, string> header in Headers)
                 {
-                    switch(header.Key)
+#if NETFX_CORE
+                    request.Headers[header.Key] = header.Value;
+#else
+                    switch (header.Key)
                     {
                         case HttpRequestHeader.Accept:
                             request.Accept = header.Value;
@@ -453,7 +481,8 @@ namespace CI.HttpClient
                         default:
                             request.Headers.Add(header.Key, header.Value);
                             break;
-                    }                 
+                    }
+#endif
                 }
             }
         }
@@ -468,8 +497,10 @@ namespace CI.HttpClient
 
         private void AddTimeouts(HttpWebRequest request)
         {
+#if !NETFX_CORE
             request.Timeout = Timeout;
             request.ReadWriteTimeout = ReadWriteTimeout;
+#endif
         }
 
         private void AddRequest(HttpWebRequest request)
