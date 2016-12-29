@@ -380,6 +380,7 @@ namespace CI.HttpClient
         private HttpWebRequest CreateRequest(Uri uri)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+            DisableWriteStreamBuffering(request);
             AddCache(request);
             AddCertificates(request);
             AddCookies(request);
@@ -390,6 +391,13 @@ namespace CI.HttpClient
             AddTimeouts(request);
             AddRequest(request);
             return request;
+        }
+
+        private void DisableWriteStreamBuffering(HttpWebRequest request)
+        {        
+#if !NETFX_CORE
+            request.AllowWriteStreamBuffering = false;
+#endif
         }
 
         private void AddCache(HttpWebRequest request)
