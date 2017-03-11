@@ -32,23 +32,23 @@ namespace CI.HttpClient
         public int UploadBlockSize { get; set; }
 
         /// <summary>
-        /// Timeout value in milliseconds for opening read / write streams to the server. The default value is 100,000 milliseconds (100 seconds)
+        /// Timeout value in milliseconds for opening read / write streams to the server. The default value is 100,000 milliseconds (100 seconds). Set by the system for Windows Store
         /// </summary>
         public int Timeout { get; set; }
 
         /// <summary>
-        /// Timeout value in milliseconds when reading or writing data to / from the server. The default value is 300,000 milliseconds (5 minutes)
+        /// Timeout value in milliseconds when reading or writing data to / from the server. The default value is 300,000 milliseconds (5 minutes). Set by the system for Windows Store
         /// </summary>
         public int ReadWriteTimeout { get; set; }
 
 #if !NETFX_CORE
         /// <summary>
-        /// The cache policy that will be associated with requests
+        /// The cache policy that will be associated with requests. Not available for Windows Store
         /// </summary>
         public RequestCachePolicy Cache { get; set; }
 
         /// <summary>
-        /// The collection of security certificates that will be associated with requests
+        /// The collection of security certificates that will be associated with requests. Not available for Windows Store
         /// </summary>
         public X509CertificateCollection Certificates { get; set; }
 #endif
@@ -64,14 +64,19 @@ namespace CI.HttpClient
         public ICredentials Credentials { get; set; }
 
         /// <summary>
-        /// Indicates whether to make a persistent connection to the Internet resource. The default is true
+        /// Indicates whether to make a persistent connection to the Internet resource. The default is true. Set by the system for Windows Store
         /// </summary>
         public bool KeepAlive { get; set; }
 
         /// <summary>
-        /// Specifies a collection of the name/value pairs that make up the HTTP headers
+        /// Specifies a collection of the name/value pairs that make up the standard HTTP headers
         /// </summary>
         public IDictionary<HttpRequestHeader, string> Headers { get; set; }
+
+        /// <summary>
+        /// Specifies a collection of the name/value pairs that make up user defined HTTP headers
+        /// </summary>
+        public IDictionary<string, string> CustomHeaders { get; set; }
 
         /// <summary>
         /// Proxy information that will be associated with requests
@@ -94,6 +99,7 @@ namespace CI.HttpClient
             ReadWriteTimeout = DEFAULT_READ_WRITE_TIMEOUT;
             KeepAlive = DEFAULT_KEEP_ALIVE;
             Headers = new Dictionary<HttpRequestHeader, string>();
+            CustomHeaders = new Dictionary<string, string>();
             _requests = new List<HttpWebRequest>();
             _lock = new object();
         }
@@ -490,6 +496,18 @@ namespace CI.HttpClient
                             request.Headers.Add(header.Key, header.Value);
                             break;
                     }
+#endif
+                }
+            }
+
+            if(CustomHeaders != null)
+            {
+                foreach (KeyValuePair<string, string> header in CustomHeaders)
+                {
+#if NETFX_CORE
+                    request.Headers[header.Key] = header.Value;
+#else
+                    request.Headers.Add(header.Key, header.Value);
 #endif
                 }
             }
