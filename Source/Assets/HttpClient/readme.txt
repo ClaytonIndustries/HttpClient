@@ -1,4 +1,4 @@
-﻿Http Client (v1.00)
+﻿Http Client (v1.01)
 ----------------------------
 
 Thank you for downloading Http Client we hope you enjoy using it!
