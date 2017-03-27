@@ -229,11 +229,10 @@ namespace CI.HttpClient.Core
 
                 int readThisLoop = 0;
                 List<byte> allContent = new List<byte>();
+                byte[] buffer = new byte[blockSize];
 
                 do
                 {
-                    byte[] buffer = new byte[blockSize];
-
                     readThisLoop = stream.Read(buffer, contentReadThisRound, blockSize - contentReadThisRound);
 
                     contentReadThisRound += readThisLoop;
@@ -290,11 +289,10 @@ namespace CI.HttpClient.Core
 
                 int readThisLoop = 0;
                 List<byte> allContent = new List<byte>();
+                byte[] buffer = new byte[blockSize];
 
                 do
                 {
-                    byte[] buffer = new byte[blockSize];
-
                     readThisLoop = stream.Read(buffer, contentReadThisRound, blockSize - contentReadThisRound);
 
                     contentReadThisRound += readThisLoop;
