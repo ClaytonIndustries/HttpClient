@@ -1,4 +1,4 @@
-﻿Http Client (v1.01)
+﻿Http Client (v1.02)
 ----------------------------
 
 Thank you for downloading Http Client we hope you enjoy using it!
@@ -9,6 +9,15 @@ If you would like to see any features added please get in touch
 
 Support Website: http://www.claytoninds.com/
 Support Email: clayton.inds+support@gmail.com
+
+------------------------------------------------------------------------------------------------------------------------
+When building for mono based platforms and using HTTPS, you may encounter certificate exceptions as mono does not include root certificates by default.
+You can add the follow code to automatically accept all certificates or customise it to add your own validation.
+
+System.Net.ServicePointManager.ServerCertificateValidationCallback += (o, certificate, chain, errors) =>
+{
+    return true;
+};
 
 ------------------------------------------------------------------------------------------------------------------------
 
