@@ -301,18 +301,9 @@ namespace CI.HttpClient.Core
                     {
                         totalContentRead += contentReadThisRound;
 
-                        byte[] responseData = null;
+                        byte[] responseData = new byte[contentReadThisRound];
 
-                        if (buffer.Length > contentReadThisRound)
-                        {
-                            responseData = new byte[contentReadThisRound];
-
-                            Array.Copy(buffer, responseData, contentReadThisRound);
-                        }
-                        else
-                        {
-                            responseData = buffer;
-                        }
+                        Array.Copy(buffer, responseData, contentReadThisRound);
 
                         if (completionOption == HttpCompletionOption.AllResponseContent)
                         {
