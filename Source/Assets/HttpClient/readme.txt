@@ -12,9 +12,9 @@ Support Email: clayton.inds+support@gmail.com
 
 ------------------------------------------------------------------------------------------------------------------------
 Why not check out our other plugins:
-- Windows Store Native (Windows UWP integration made easy)
 - Quick Save (Saving made easy)
 - Task Parallel (Threading made easy)
+- Windows Store Native (Windows UWP integration made easy)
 
 ------------------------------------------------------------------------------------------------------------------------
 When building for mono based platforms and using HTTPS, you may encounter certificate exceptions as mono does not include root certificates by default.
