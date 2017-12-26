@@ -10,6 +10,7 @@ Temp
 *.suo
 
 /Builds/*
+/Source/.vs/*
 /Source/bin/*
 /Source/obj/*
 /Source/UWP/*
