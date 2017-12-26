@@ -24,14 +24,3 @@ System.Net.ServicePointManager.ServerCertificateValidationCallback += (o, certif
 {
     return true;
 };
-
-------------------------------------------------------------------------------------------------------------------------
-
-Methods:
-HttpClient.Abort
-HttpClient.Delete
-HttpClient.GetString
-HttpClient.GetByteArray
-HttpClient.Patch
-HttpClient.Post
-HttpClient.Put
