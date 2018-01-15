@@ -8,13 +8,13 @@ namespace CI.HttpClient
 {
     public class MultipartContent : IHttpContent, IEnumerable<IHttpContent>
     {
-        private const string DEFAULT_SUBTYPE = "form-data";
+        protected const string DEFAULT_SUBTYPE = "form-data";
 
-        private readonly List<IHttpContent> _content;
-        private readonly string _boundary;
+        protected readonly IList<IHttpContent> _content;
+        protected readonly string _boundary;
 
-        private string _contentType;
-        private long _contentLength;
+        protected string _contentType;
+        protected long _contentLength;
 
         public byte[] BoundaryStartBytes { get; private set; }
         public byte[] BoundaryEndBytes { get; private set; }
@@ -26,14 +26,16 @@ namespace CI.HttpClient
         }
 
         /// <summary>
+        /// Not currently implemented
+        /// </summary>
+        public IDictionary<string, string> Headers { get; private set; }
+
+        /// <summary>
         /// Send a combination of different HttpContents with a default boundary and the Content Type as multipart/form-data
         /// </summary>
         public MultipartContent()
+            : this(Guid.NewGuid().ToString(), DEFAULT_SUBTYPE)
         {
-            _content = new List<IHttpContent>();
-            _boundary = Guid.NewGuid().ToString();
-            CreateConentType(DEFAULT_SUBTYPE);
-            CreateDelimiters();
         }
 
         /// <summary>
@@ -41,11 +43,8 @@ namespace CI.HttpClient
         /// </summary>
         /// <param name="boundary">A string to separate the contents</param>
         public MultipartContent(string boundary)
+            : this(boundary, DEFAULT_SUBTYPE)
         {
-            _content = new List<IHttpContent>();
-            _boundary = boundary;
-            CreateConentType(DEFAULT_SUBTYPE);
-            CreateDelimiters();
         }
 
         /// <summary>
@@ -57,11 +56,12 @@ namespace CI.HttpClient
         {
             _content = new List<IHttpContent>();
             _boundary = boundary;
-            CreateConentType(subtype);
+            Headers = new Dictionary<string, string>();
+            CreateContentType(subtype);
             CreateDelimiters();
         }
 
-        private void CreateConentType(string subtype)
+        private void CreateContentType(string subtype)
         {
             _contentType = "multipart/" + subtype + "; boundary=" + _boundary;
         }
@@ -74,10 +74,10 @@ namespace CI.HttpClient
         }
 
         /// <summary>
-        /// Adds an IHttpContent to this multipart content - do not add MultipartContent
+        /// Adds an IHttpContent to this multipart content - do not add other MultipartContents
         /// </summary>
         /// <param name="content">The IHttpContent</param>
-        public void Add(IHttpContent content)
+        public virtual void Add(IHttpContent content)
         {
             _content.Add(content);
         }
@@ -97,6 +97,7 @@ namespace CI.HttpClient
                 {
                     length += BoundaryStartBytes.Length;
                     length += Encoding.UTF8.GetBytes("Content-Type: " + content.GetContentType()).Length;
+                    length += SerialiseHeaders();
                     length += CRLFBytes.Length;
                     length += CRLFBytes.Length;
 
@@ -142,7 +143,20 @@ namespace CI.HttpClient
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return this.GetEnumerator();
+            return GetEnumerator();
+        }
+
+        private long SerialiseHeaders()
+        {
+            long length = 0;
+
+            foreach(var header in Headers)
+            {
+                length += CRLFBytes.Length;
+                length += Encoding.UTF8.GetBytes(header.Key + ": " + header.Value).Length;
+            }
+
+            return length;
         }
     }
 }

@@ -17,12 +17,18 @@ namespace CI.HttpClient
         }
 
         /// <summary>
+        /// Not currently implemented
+        /// </summary>
+        public IDictionary<string, string> Headers { get; private set; }
+
+        /// <summary>
         /// Send content encoded as name/value pairs, the Content Type header will be set to application/x-www-form-urlencoded
         /// </summary>
         /// <param name="nameValueCollection">The key/value pairs to send</param>
         public FormUrlEncodedContent(IEnumerable<KeyValuePair<string, string>> nameValueCollection)
         {
             _nameValueCollection = nameValueCollection;
+            Headers = new Dictionary<string, string>();
         }
 
         public long GetContentLength()

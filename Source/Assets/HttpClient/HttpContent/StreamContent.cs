@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace CI.HttpClient
@@ -14,6 +15,11 @@ namespace CI.HttpClient
         }
 
         /// <summary>
+        /// Not currently implemented
+        /// </summary>
+        public IDictionary<string, string> Headers { get; private set; }
+
+        /// <summary>
         /// Send content based on a stream, the specified mediaType sets the Content Type header
         /// </summary>
         /// <param name="stream">The stream that identifies the content</param>
@@ -22,6 +28,7 @@ namespace CI.HttpClient
         {
             _stream = stream;
             _mediaType = mediaType;
+            Headers = new Dictionary<string, string>();
         }
 
         public long GetContentLength()
