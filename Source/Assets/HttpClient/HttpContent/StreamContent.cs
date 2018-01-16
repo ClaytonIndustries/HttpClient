@@ -7,7 +7,6 @@ namespace CI.HttpClient
     public class StreamContent : IHttpContent
     {
         private readonly Stream _stream;
-        private readonly string _mediaType;
 
         public ContentReadAction ContentReadAction
         {
@@ -27,8 +26,8 @@ namespace CI.HttpClient
         public StreamContent(Stream stream, string mediaType)
         {
             _stream = stream;
-            _mediaType = mediaType;
             Headers = new Dictionary<string, string>();
+            Headers.Add("Content-Type", mediaType);
         }
 
         public long GetContentLength()
@@ -38,7 +37,12 @@ namespace CI.HttpClient
 
         public string GetContentType()
         {
-            return _mediaType;
+            if (Headers.ContainsKey("Content-Type"))
+            {
+                return Headers["Content-Type"];
+            }
+
+            return string.Empty;
         }
 
         public byte[] ReadAsByteArray()

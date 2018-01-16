@@ -7,7 +7,6 @@ namespace CI.HttpClient
     public class ByteArrayContent : IHttpContent
     {
         private readonly byte[] _content;
-        private readonly string _mediaType;
 
         /// <summary>
         /// Not currently implemented
@@ -22,8 +21,8 @@ namespace CI.HttpClient
         public ByteArrayContent(byte[] content, string mediaType)
         {
             _content = content;
-            _mediaType = mediaType;
             Headers = new Dictionary<string, string>();
+            Headers.Add("Content-Type", mediaType);
         }
 
         public ContentReadAction ContentReadAction
@@ -38,7 +37,12 @@ namespace CI.HttpClient
 
         public string GetContentType()
         {
-            return _mediaType;
+            if (Headers.ContainsKey("Content-Type"))
+            {
+                return Headers["Content-Type"];
+            }
+
+            return string.Empty;
         }
 
         public byte[] ReadAsByteArray()

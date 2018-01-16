@@ -13,7 +13,6 @@ namespace CI.HttpClient
         protected readonly IList<IHttpContent> _content;
         protected readonly string _boundary;
 
-        protected string _contentType;
         protected long _contentLength;
 
         public byte[] BoundaryStartBytes { get; private set; }
@@ -57,13 +56,8 @@ namespace CI.HttpClient
             _content = new List<IHttpContent>();
             _boundary = boundary;
             Headers = new Dictionary<string, string>();
-            CreateContentType(subtype);
+            Headers.Add("Content-Type", "multipart/" + subtype + "; boundary=" + boundary);
             CreateDelimiters();
-        }
-
-        private void CreateContentType(string subtype)
-        {
-            _contentType = "multipart/" + subtype + "; boundary=" + _boundary;
         }
 
         private void CreateDelimiters()
@@ -96,9 +90,7 @@ namespace CI.HttpClient
                 foreach (IHttpContent content in _content)
                 {
                     length += BoundaryStartBytes.Length;
-                    length += Encoding.UTF8.GetBytes("Content-Type: " + content.GetContentType()).Length;
-                    length += SerialiseHeaders();
-                    length += CRLFBytes.Length;
+                    length += CalculateHeadersLength();
                     length += CRLFBytes.Length;
 
                     if (content.ContentReadAction == ContentReadAction.ByteArray)
@@ -123,7 +115,12 @@ namespace CI.HttpClient
 
         public string GetContentType()
         {
-            return _contentType;
+            if (Headers.ContainsKey("Content-Type"))
+            {
+                return Headers["Content-Type"];
+            }
+
+            return string.Empty;
         }
 
         public byte[] ReadAsByteArray()
@@ -146,14 +143,14 @@ namespace CI.HttpClient
             return GetEnumerator();
         }
 
-        private long SerialiseHeaders()
+        private long CalculateHeadersLength()
         {
             long length = 0;
 
             foreach(var header in Headers)
             {
-                length += CRLFBytes.Length;
                 length += Encoding.UTF8.GetBytes(header.Key + ": " + header.Value).Length;
+                length += CRLFBytes.Length;
             }
 
             return length;

@@ -11,7 +11,6 @@ namespace CI.HttpClient
 
         private readonly string _content;
         private readonly Encoding _encoding;
-        private readonly string _mediaType;
 
         private byte[] _serialisedContent;
 
@@ -54,8 +53,8 @@ namespace CI.HttpClient
         {
             _content = content;
             _encoding = encoding;
-            _mediaType = mediaType;
             Headers = new Dictionary<string, string>();
+            Headers.Add("Content-Type", mediaType + "; charset=" + _encoding.WebName);
         }
 
         public long GetContentLength()
@@ -65,7 +64,12 @@ namespace CI.HttpClient
 
         public string GetContentType()
         {
-            return _mediaType + "; charset=" + _encoding.WebName;
+            if (Headers.ContainsKey("Content-Type"))
+            {
+                return Headers["Content-Type"];
+            }
+
+            return string.Empty;
         }
 
         public byte[] ReadAsByteArray()

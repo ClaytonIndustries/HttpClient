@@ -29,6 +29,7 @@ namespace CI.HttpClient
         {
             _nameValueCollection = nameValueCollection;
             Headers = new Dictionary<string, string>();
+            Headers.Add("Content-Type", "application/x-www-form-urlencoded");
         }
 
         public long GetContentLength()
@@ -38,7 +39,12 @@ namespace CI.HttpClient
 
         public string GetContentType()
         {
-            return "application/x-www-form-urlencoded";
+            if (Headers.ContainsKey("Content-Type"))
+            {
+                return Headers["Content-Type"];
+            }
+
+            return string.Empty;
         }
 
         public byte[] ReadAsByteArray()
