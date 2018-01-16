@@ -1,5 +1,5 @@
 ﻿
-namespace CI.HttpClient.HttpContent
+namespace CI.HttpClient
 {
     public class MultipartFormDataContent : MultipartContent
     {
