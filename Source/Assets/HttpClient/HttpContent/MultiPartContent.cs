@@ -92,16 +92,7 @@ namespace CI.HttpClient
                     length += BoundaryStartBytes.Length;
                     length += CalculateHeadersLength();
                     length += CRLFBytes.Length;
-
-                    if (content.ContentReadAction == ContentReadAction.ByteArray)
-                    {
-                        length += content.GetContentLength();
-                    }
-                    else
-                    {
-                        length += content.ReadAsStream().Length;
-                    }
-
+                    length += content.GetContentLength();
                     length += CRLFBytes.Length;
                 }
 

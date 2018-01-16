@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -68,21 +69,24 @@ namespace CI.HttpClient.Core
         {
             long contentLength = content.GetContentLength();
             long totalContentUploaded = 0;
-            int singleContentCount = 0;
             MultipartContent multipartContent = content as MultipartContent;
 
             foreach (IHttpContent singleContent in multipartContent)
             {
-                byte[] contentHeader = Encoding.UTF8.GetBytes("Content-Type: " + singleContent.GetContentType());
-
                 stream.Write(multipartContent.BoundaryStartBytes, 0, multipartContent.BoundaryStartBytes.Length);
                 totalContentUploaded += multipartContent.BoundaryStartBytes.Length;
 
-                stream.Write(contentHeader, 0, contentHeader.Length);
-                totalContentUploaded += contentHeader.Length;
+                foreach (var header in content.Headers)
+                {
+                    byte[] headerBytes = Encoding.UTF8.GetBytes(header.Key + ": " + header.Value);
 
-                stream.Write(multipartContent.CRLFBytes, 0, multipartContent.CRLFBytes.Length);
-                totalContentUploaded += multipartContent.CRLFBytes.Length;
+                    stream.Write(headerBytes, 0, headerBytes.Length);
+                    totalContentUploaded += headerBytes.Length;
+
+                    stream.Write(multipartContent.CRLFBytes, 0, multipartContent.CRLFBytes.Length);
+                    totalContentUploaded += multipartContent.CRLFBytes.Length;
+                }
+
                 stream.Write(multipartContent.CRLFBytes, 0, multipartContent.CRLFBytes.Length);
                 totalContentUploaded += multipartContent.CRLFBytes.Length;
 
@@ -90,11 +94,9 @@ namespace CI.HttpClient.Core
 
                 stream.Write(multipartContent.CRLFBytes, 0, multipartContent.CRLFBytes.Length);
                 totalContentUploaded += multipartContent.CRLFBytes.Length;
-
-                singleContentCount++;
             }
 
-            if(singleContentCount == 0)
+            if (!multipartContent.Any()) 
             {
                 stream.Write(multipartContent.BoundaryStartBytes, 0, multipartContent.BoundaryStartBytes.Length);
                 totalContentUploaded += multipartContent.BoundaryStartBytes.Length;
@@ -155,22 +157,6 @@ namespace CI.HttpClient.Core
             }
 
             return totalContentUploaded;
-        }
-
-        private void RaiseUploadStatusCallback(Action<UploadStatusMessage> uploadStatusCallback, long contentLength, long contentUploadedThisRound, long totalContentUploaded)
-        {
-            if (uploadStatusCallback != null)
-            {
-                _dispatcher.Enqueue(() =>
-                {
-                    uploadStatusCallback(new UploadStatusMessage()
-                    {
-                        ContentLength = contentLength,
-                        ContentUploadedThisRound = contentUploadedThisRound,
-                        TotalContentUploaded = totalContentUploaded
-                    });
-                });
-            }
         }
 
 #if NETFX_CORE
@@ -241,18 +227,9 @@ namespace CI.HttpClient.Core
                     {
                         totalContentRead += contentReadThisRound;
 
-                        byte[] responseData = null;
+                        byte[] responseData = new byte[contentReadThisRound];
 
-                        if (buffer.Length > contentReadThisRound)
-                        {
-                            responseData = new byte[contentReadThisRound];
-
-                            Array.Copy(buffer, responseData, contentReadThisRound);
-                        }
-                        else
-                        {
-                            responseData = buffer;
-                        }
+                        Array.Copy(buffer, responseData, contentReadThisRound);
 
                         if (completionOption == HttpCompletionOption.AllResponseContent)
                         {
@@ -322,6 +299,22 @@ namespace CI.HttpClient.Core
             }
         }
 #endif
+
+        private void RaiseUploadStatusCallback(Action<UploadStatusMessage> uploadStatusCallback, long contentLength, long contentUploadedThisRound, long totalContentUploaded)
+        {
+            if (uploadStatusCallback != null)
+            {
+                _dispatcher.Enqueue(() =>
+                {
+                    uploadStatusCallback(new UploadStatusMessage()
+                    {
+                        ContentLength = contentLength,
+                        ContentUploadedThisRound = contentUploadedThisRound,
+                        TotalContentUploaded = totalContentUploaded
+                    });
+                });
+            }
+        }
 
         private void RaiseResponseCallback<T>(Action<HttpResponseMessage<T>> responseCallback, T data, long contentReadThisRound, long totalContentRead)
         {
