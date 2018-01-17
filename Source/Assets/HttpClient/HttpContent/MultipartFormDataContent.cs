@@ -26,7 +26,7 @@ namespace CI.HttpClient
         /// <param name="content">The IHttpContent</param>
         public override void Add(IHttpContent content)
         {
-            content.Headers.Add("Content-disposition", DEFAULT_SUBTYPE);
+            content.Headers.Add("Content-Disposition", DEFAULT_SUBTYPE);
 
             base.Add(content);
         }
@@ -38,7 +38,7 @@ namespace CI.HttpClient
         /// <param name="name">The name of the IHttpContent</param>
         public void Add(IHttpContent content, string name)
         {
-            content.Headers.Add("Content-disposition", string.Format("{0}; name=\"{1}\"", DEFAULT_SUBTYPE, name));
+            content.Headers.Add("Content-Disposition", string.Format("{0}; name=\"{1}\"", DEFAULT_SUBTYPE, name));
 
             base.Add(content);
         }
@@ -51,7 +51,7 @@ namespace CI.HttpClient
         /// <param name="filename">The filename for the IHttpContent</param>
         public void Add(IHttpContent content, string name, string filename)
         {
-            content.Headers.Add("Content-disposition", string.Format("{0}; name=\"{1}\"; filename=\"{2}\"", DEFAULT_SUBTYPE, name, filename));
+            content.Headers.Add("Content-Disposition", string.Format("{0}; name=\"{1}\"; filename=\"{2}\"", DEFAULT_SUBTYPE, name, filename));
 
             base.Add(content);
         }
