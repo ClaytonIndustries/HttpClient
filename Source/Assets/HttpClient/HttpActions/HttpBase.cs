@@ -76,7 +76,7 @@ namespace CI.HttpClient.Core
                 stream.Write(multipartContent.BoundaryStartBytes, 0, multipartContent.BoundaryStartBytes.Length);
                 totalContentUploaded += multipartContent.BoundaryStartBytes.Length;
 
-                foreach (var header in content.Headers)
+                foreach (var header in singleContent.Headers)
                 {
                     byte[] headerBytes = Encoding.UTF8.GetBytes(header.Key + ": " + header.Value);
 

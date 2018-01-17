@@ -90,7 +90,11 @@ namespace CI.HttpClient
                 foreach (IHttpContent content in _content)
                 {
                     length += BoundaryStartBytes.Length;
-                    length += CalculateHeadersLength();
+					foreach (var header in content.Headers)
+                    {
+                        length += Encoding.UTF8.GetBytes(header.Key + ": " + header.Value).Length;
+                        length += CRLFBytes.Length;
+                    }
                     length += CRLFBytes.Length;
                     length += content.GetContentLength();
                     length += CRLFBytes.Length;
@@ -132,19 +136,6 @@ namespace CI.HttpClient
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
-        }
-
-        private long CalculateHeadersLength()
-        {
-            long length = 0;
-
-            foreach(var header in Headers)
-            {
-                length += Encoding.UTF8.GetBytes(header.Key + ": " + header.Value).Length;
-                length += CRLFBytes.Length;
-            }
-
-            return length;
         }
     }
 }
