@@ -66,7 +66,7 @@ namespace CI.HttpClient
             {
                 if (ContentLength <= 0)
                 {
-                    return 0;
+                    return 100;
                 }
                 else
                 {
