@@ -179,18 +179,23 @@ namespace CI.HttpClient.Core
 #else
         protected void HandleStringResponseRead(Action<HttpResponseMessage<string>> responseCallback)
         {
-            HttpWebResponse response = (HttpWebResponse)_request.GetResponse();
+            try
+            {
+                _response = (HttpWebResponse)_request.GetResponse();
+            }
+            catch (WebException e)
+            {
+                _response = (HttpWebResponse)e.Response;
+            }
 
-            _response = response;
-
-            using (StreamReader streamReader = new StreamReader(response.GetResponseStream()))
+            using (StreamReader streamReader = new StreamReader(_response.GetResponseStream()))
             {
                 if (responseCallback == null)
                 {
                     return;
                 }
 
-                RaiseResponseCallback(responseCallback, streamReader.ReadToEnd(), response.ContentLength, response.ContentLength);
+                RaiseResponseCallback(responseCallback, streamReader.ReadToEnd(), _response.ContentLength, _response.ContentLength);
             }
         }
 #endif
@@ -250,11 +255,16 @@ namespace CI.HttpClient.Core
 #else
         protected void HandleByteArrayResponseRead(Action<HttpResponseMessage<byte[]>> responseCallback, HttpCompletionOption completionOption, int blockSize)
         {
-            HttpWebResponse response = (HttpWebResponse)_request.GetResponse();
+            try
+            {
+                _response = (HttpWebResponse)_request.GetResponse();
+            }
+            catch (WebException e)
+            {
+                _response = (HttpWebResponse)e.Response;
+            }
 
-            _response = response;
-
-            using (Stream stream = response.GetResponseStream())
+            using (Stream stream = _response.GetResponseStream())
             {
                 if (responseCallback == null)
                 {
