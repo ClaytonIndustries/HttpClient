@@ -162,18 +162,30 @@ namespace CI.HttpClient.Core
 #if NETFX_CORE
         protected void HandleStringResponseRead(Action<HttpResponseMessage<string>> responseCallback)
         {
-            HttpWebResponse response = (HttpWebResponse)_request.GetResponseAsync().Result;
+            try
+            {
+                _response = (HttpWebResponse)_request.GetResponseAsync().Result;
+            }
+            catch (AggregateException e)
+            {
+                if (e.InnerExceptions.Any() && e.InnerExceptions.First() is WebException)
+                {
+                    _response = (HttpWebResponse)(e.InnerExceptions.First() as WebException).Response;
+                }
+                else
+                {
+                    throw;
+                }
+            }
 
-            _response = response;
-
-            using (StreamReader streamReader = new StreamReader(response.GetResponseStream()))
+            using (StreamReader streamReader = new StreamReader(_response.GetResponseStream()))
             {
                 if (responseCallback == null)
                 {
                     return;
                 }
 
-                RaiseResponseCallback(responseCallback, streamReader.ReadToEnd(), response.ContentLength, response.ContentLength);
+                RaiseResponseCallback(responseCallback, streamReader.ReadToEnd(), _response.ContentLength, _response.ContentLength);
             }
         }
 #else
@@ -204,11 +216,23 @@ namespace CI.HttpClient.Core
 #if NETFX_CORE
         protected void HandleByteArrayResponseRead(Action<HttpResponseMessage<byte[]>> responseCallback, HttpCompletionOption completionOption, int blockSize)
         {
-            HttpWebResponse response = (HttpWebResponse)_request.GetResponseAsync().Result;
+            try
+            {
+                _response = (HttpWebResponse)_request.GetResponseAsync().Result;
+            }
+            catch (AggregateException e)
+            {
+                if (e.InnerExceptions.Any() && e.InnerExceptions.First() is WebException)
+                {
+                    _response = (HttpWebResponse)(e.InnerExceptions.First() as WebException).Response;
+                }
+                else
+                {
+                    throw;
+                }
+            }
 
-            _response = response;
-
-            using (Stream stream = response.GetResponseStream())
+            using (Stream stream = _response.GetResponseStream())
             {
                 if (responseCallback == null)
                 {
