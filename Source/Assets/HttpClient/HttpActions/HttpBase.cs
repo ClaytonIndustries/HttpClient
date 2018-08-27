@@ -96,7 +96,7 @@ namespace CI.HttpClient.Core
                 totalContentUploaded += multipartContent.CRLFBytes.Length;
             }
 
-            if (!multipartContent.Any()) 
+            if (!multipartContent.Any())
             {
                 stream.Write(multipartContent.BoundaryStartBytes, 0, multipartContent.BoundaryStartBytes.Length);
                 totalContentUploaded += multipartContent.BoundaryStartBytes.Length;
@@ -178,6 +178,11 @@ namespace CI.HttpClient.Core
                 }
             }
 
+            if (_response == null)
+            {
+                throw new Exception("Server did not return a response");
+            }
+
             using (StreamReader streamReader = new StreamReader(_response.GetResponseStream()))
             {
                 if (responseCallback == null)
@@ -198,6 +203,11 @@ namespace CI.HttpClient.Core
             catch (WebException e)
             {
                 _response = (HttpWebResponse)e.Response;
+            }
+
+            if (_response == null)
+            {
+                throw new Exception("Server did not return a response");
             }
 
             using (StreamReader streamReader = new StreamReader(_response.GetResponseStream()))
@@ -230,6 +240,11 @@ namespace CI.HttpClient.Core
                 {
                     throw;
                 }
+            }
+
+            if (_response == null)
+            {
+                throw new Exception("Server did not return a response");
             }
 
             using (Stream stream = _response.GetResponseStream())
@@ -286,6 +301,11 @@ namespace CI.HttpClient.Core
             catch (WebException e)
             {
                 _response = (HttpWebResponse)e.Response;
+            }
+
+            if (_response == null)
+            {
+                throw new Exception("Server did not return a response");
             }
 
             using (Stream stream = _response.GetResponseStream())
@@ -388,12 +408,12 @@ namespace CI.HttpClient.Core
 
         private HttpStatusCode GetStatusCode(Exception exception, HttpWebResponse response)
         {
-            if(response != null)
+            if (response != null)
             {
                 return response.StatusCode;
             }
 
-            if(exception.Message.Contains("The remote server returned an error:"))
+            if (exception.Message.Contains("The remote server returned an error:"))
             {
                 int statusCode = 0;
 
