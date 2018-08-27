@@ -14,6 +14,8 @@ namespace CI.HttpClient.Core
         protected HttpWebResponse _response;
         protected IDispatcher _dispatcher;
 
+        private bool _isAborted;
+
         protected void SetMethod(HttpAction httpAction)
         {
             _request.Method = httpAction.ToString().ToUpper();
@@ -374,17 +376,24 @@ namespace CI.HttpClient.Core
         {
             _dispatcher.Enqueue(() =>
             {
-                responseCallback(new HttpResponseMessage<T>()
+                try
                 {
-                    OriginalRequest = _request,
-                    OriginalResponse = _response,
-                    Data = data,
-                    ContentLength = _response.ContentLength,
-                    ContentReadThisRound = contentReadThisRound,
-                    TotalContentRead = totalContentRead,
-                    StatusCode = _response.StatusCode,
-                    ReasonPhrase = _response.StatusDescription
-                });
+                    responseCallback(new HttpResponseMessage<T>()
+                    {
+                        OriginalRequest = _request,
+                        OriginalResponse = _response,
+                        Data = data,
+                        ContentLength = _response.ContentLength,
+                        ContentReadThisRound = contentReadThisRound,
+                        TotalContentRead = totalContentRead,
+                        StatusCode = _response.StatusCode,
+                        ReasonPhrase = _response.StatusDescription
+                    });
+                }
+                catch (ObjectDisposedException)
+                {
+                    RaiseAbortedResponse(responseCallback);
+                }
             });
         }
 
@@ -394,16 +403,42 @@ namespace CI.HttpClient.Core
             {
                 _dispatcher.Enqueue(() =>
                 {
-                    action(new HttpResponseMessage<T>()
+                    try
                     {
-                        OriginalRequest = _request,
-                        OriginalResponse = _response,
-                        Exception = exception,
-                        StatusCode = GetStatusCode(exception, _response),
-                        ReasonPhrase = GetReasonPhrase(exception, _response)
-                    });
+                        action(new HttpResponseMessage<T>()
+                        {
+                            OriginalRequest = _request,
+                            OriginalResponse = _response,
+                            Exception = exception,
+                            StatusCode = GetStatusCode(exception, _response),
+                            ReasonPhrase = GetReasonPhrase(exception, _response)
+                        });
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        RaiseAbortedResponse(action);
+                    }
                 });
             }
+        }
+
+        private void RaiseAbortedResponse<T>(Action<HttpResponseMessage<T>> action)
+        {
+            if (_isAborted)
+            {
+                return;
+            }
+
+            action(new HttpResponseMessage<T>()
+            {
+                OriginalRequest = null,
+                OriginalResponse = null,
+                Exception = new Exception("The request was aborted"),
+                StatusCode = HttpStatusCode.InternalServerError,
+                ReasonPhrase = "Unknown"
+            });
+
+            _isAborted = true;
         }
 
         private HttpStatusCode GetStatusCode(Exception exception, HttpWebResponse response)
