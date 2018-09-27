@@ -1,4 +1,4 @@
-﻿Http Client (v1.06)
+﻿Http Client (v1.07)
 ----------------------------
 
 Thank you for downloading Http Client we hope you enjoy using it!
@@ -17,6 +17,8 @@ Why not check out our other plugins:
 - Windows Store Native (Windows UWP integration made easy)
 
 ------------------------------------------------------------------------------------------------------------------------
+**The below is no longer necessary if you are using Unity 2018.2 or greater and have the Scripting Runtime Version set to .NET 4.x Equivalent**
+
 When building for mono based platforms and using HTTPS, you may encounter certificate exceptions as mono does not include root certificates by default.
 You can add the follow code to automatically accept all certificates or customise it to add your own validation.
 
