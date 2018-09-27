@@ -69,14 +69,9 @@ namespace CI.HttpClient
         public bool KeepAlive { get; set; }
 
         /// <summary>
-        /// Specifies a collection of the name/value pairs that make up the standard HTTP headers
+        /// Specifies a collection of the name/value pairs that make up the HTTP headers
         /// </summary>
-        public IDictionary<HttpRequestHeader, string> Headers { get; set; }
-
-        /// <summary>
-        /// Specifies a collection of the name/value pairs that make up user defined HTTP headers
-        /// </summary>
-        public IDictionary<string, string> CustomHeaders { get; set; }
+        public IDictionary<string, string> Headers { get; set; }
 
         /// <summary>
         /// Proxy information that will be associated with requests
@@ -98,8 +93,7 @@ namespace CI.HttpClient
             Timeout = DEFAULT_TIMEOUT;
             ReadWriteTimeout = DEFAULT_READ_WRITE_TIMEOUT;
             KeepAlive = DEFAULT_KEEP_ALIVE;
-            Headers = new Dictionary<HttpRequestHeader, string>();
-            CustomHeaders = new Dictionary<string, string>();
+            Headers = new Dictionary<string, string>();
             _requests = new List<HttpWebRequest>();
             _lock = new object();
         }
@@ -453,61 +447,49 @@ namespace CI.HttpClient
         {
             if (Headers != null)
             {
-                foreach (KeyValuePair<HttpRequestHeader, string> header in Headers)
+                foreach (var header in Headers)
                 {
 #if NETFX_CORE
                     request.Headers[header.Key] = header.Value;
 #else
-                    switch (header.Key)
+                    switch (header.Key.ToLower())
                     {
-                        case HttpRequestHeader.Accept:
+                        case "accept":
                             request.Accept = header.Value;
                             break;
-                        case HttpRequestHeader.Connection:
+                        case "connection":
                             request.Connection = header.Value;
                             break;
-                        case HttpRequestHeader.ContentLength:
+                        case "content-length":
                             throw new NotSupportedException("Content Length is set automatically");
-                        case HttpRequestHeader.ContentType:
+                        case "content-type":
                             throw new NotSupportedException("Content Type is set automatically");
-                        case HttpRequestHeader.Expect:
+                        case "expect":
                             request.Expect = header.Value;
                             break;
-                        case HttpRequestHeader.Date:
+                        case "date":
                             throw new NotSupportedException("Date is automatically set by the system to the current date");
-                        case HttpRequestHeader.Host:
+                        case "host":
                             throw new NotSupportedException("Host is automatically set by the system to current host information");
-                        case HttpRequestHeader.IfModifiedSince:
+                        case "if-modified-since":
                             request.IfModifiedSince = DateTime.Parse(header.Value);
                             break;
-                        case HttpRequestHeader.Range:
+                        case "range":
                             int range = int.Parse(header.Value);
                             request.AddRange(range);
                             break;                          
-                        case HttpRequestHeader.Referer:
+                        case "referer":
                             request.Referer = header.Value;
                             break;
-                        case HttpRequestHeader.TransferEncoding:
+                        case "transfer-encoding":
                             throw new NotSupportedException("Transfer Encoding is not currently supported");
-                        case HttpRequestHeader.UserAgent:
+                        case "user-agent":
                             request.UserAgent = header.Value;
                             break;
                         default:
-                            request.Headers.Add(header.Key, header.Value);
+                            request.Headers[header.Key] = header.Value;
                             break;
                     }
-#endif
-                }
-            }
-
-            if(CustomHeaders != null)
-            {
-                foreach (KeyValuePair<string, string> header in CustomHeaders)
-                {
-#if NETFX_CORE
-                    request.Headers[header.Key] = header.Value;
-#else
-                    request.Headers.Add(header.Key, header.Value);
 #endif
                 }
             }
