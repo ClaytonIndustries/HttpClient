@@ -34,7 +34,7 @@ public class ExampleSceneManagerController : MonoBehaviour
 
         ProgressSlider.value = 100;
 
-        client.GetByteArray(new System.Uri("http://download.thinkbroadband.com/5MB.zip"), HttpCompletionOption.StreamResponseContent, (r) =>
+        client.GetByteArray(new System.Uri("http://httpbin.org/bytes/1000000"), HttpCompletionOption.StreamResponseContent, (r) =>
         {
             RightText.text = "Download: " + r.PercentageComplete.ToString() + "%";
             ProgressSlider.value = 100 - r.PercentageComplete;
