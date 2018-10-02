@@ -81,7 +81,7 @@ namespace CI.HttpClient
         private readonly List<HttpWebRequest> _requests;
         private readonly object _lock;
 
-        private static IDispatcher _dispatcher;
+        public static IDispatcher _dispatcher;
 
         /// <summary>
         /// Provides a class for sending HTTP requests and receiving HTTP responses from a resource identified by a URI
@@ -96,6 +96,12 @@ namespace CI.HttpClient
             Headers = new Dictionary<string, string>();
             _requests = new List<HttpWebRequest>();
             _lock = new object();
+        }
+
+        public HttpClient(GameObject dispatcher)
+            : this()
+        {
+            _dispatcher = dispatcher.GetComponent<IDispatcher>();
         }
 
         /// <summary>
