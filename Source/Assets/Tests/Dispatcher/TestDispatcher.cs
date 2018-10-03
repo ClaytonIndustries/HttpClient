@@ -2,7 +2,7 @@
 using CI.HttpClient.Core;
 using UnityEngine;
 
-namespace CI.UnityTestRunner
+namespace CI.TestRunner
 {
     public class TestDispatcher : MonoBehaviour, IDispatcher
     {

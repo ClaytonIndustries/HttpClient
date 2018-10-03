@@ -7,55 +7,43 @@ namespace CI.TestRunner
 {
     public class TestRunner
     {
-        public List<TestFixtureResult> Run()
-        {
-            List<TestFixtureResult> testFixtureResults = new List<TestFixtureResult>();
+        public Action<TestResult> TestFinished { get; set; }
 
+        public void Run()
+        {
             var testFixtures = GetTestFixtures();
 
             foreach (Type testFixture in testFixtures)
             {
-                var result = RunFixture(testFixture);
-
-                testFixtureResults.Add(result);
+                RunFixture(testFixture);
             }
-
-            return testFixtureResults;
         }
 
-        private TestFixtureResult RunFixture(Type testFixture)
+        private void RunFixture(Type testFixture)
         {
-            var testFixtureResult = new TestFixtureResult()
-            {
-                Name = testFixture.Name
-            };
-
             var setupMethod = GetMethod(testFixture, typeof(Setup));
             var testMethods = GetTestMethods(testFixture);
             var tearDownMethod = GetMethod(testFixture, typeof(TearDown));
 
             if (!testMethods.Any())
             {
-                return testFixtureResult;
+                return;
             }
 
             object classInstance = Activator.CreateInstance(testFixture);
 
             foreach (MethodInfo testMethod in testMethods)
             {
-                var result = RunTest(testMethod, setupMethod, tearDownMethod, classInstance);
-
-                testFixtureResult.TestResults.Add(result);
+                RunTest(testMethod, setupMethod, tearDownMethod, classInstance, testFixture.Name);
             }
-
-            return testFixtureResult;
         }
 
-        private TestResult RunTest(MethodInfo testMethod, MethodInfo setupMethod, MethodInfo tearDownMethod, object classInstance)
+        private void RunTest(MethodInfo testMethod, MethodInfo setupMethod, MethodInfo tearDownMethod, object classInstance, string fixtureName)
         {
             TestResult testResult = new TestResult()
             {
-                Name = testMethod.Name
+                FixtureName = fixtureName,
+                TestName = testMethod.Name
             };
 
             try
@@ -71,7 +59,7 @@ namespace CI.TestRunner
                 testResult.Exception = e.InnerException;
             }
 
-            return testResult;
+            TestFinished?.Invoke(testResult);
         }
 
         private IEnumerable<Type> GetTestFixtures()

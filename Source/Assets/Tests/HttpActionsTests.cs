@@ -2,8 +2,6 @@
 using System.Threading;
 using CI.HttpClient;
 using CI.TestRunner;
-using CI.UnityTestRunner;
-using UnityEngine;
 
 namespace Assets.TestRunner
 {
@@ -18,10 +16,8 @@ namespace Assets.TestRunner
         [Setup]
         public void Setup()
         {
-            GameObject dispatcher = new GameObject("HttpClientDispatcher");
-            dispatcher.AddComponent<TestDispatcher>();
-
-            _sut = new HttpClient(dispatcher);
+            _sut = new HttpClient();
+            _sut.SetDispatcher<TestDispatcher>();
 
             _manualResetEvent = new ManualResetEvent(false);
         }

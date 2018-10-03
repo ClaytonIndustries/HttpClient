@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using CI.TestRunner;
+﻿using CI.TestRunner;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,15 +8,18 @@ public class SceneController : MonoBehaviour
     public GameObject TestResultPrefab;
     public Text TestResultText;
 
+    private readonly TestRunner _testRunner = new TestRunner();
+
+    public void Start()
+    {
+        _testRunner.TestFinished += (e) => DisplayResult(e);
+    }
+
     public void Run()
     {
         ClearTests();
 
-        TestRunner testRunner = new TestRunner();
-
-        var fixtureResults = testRunner.Run();
-
-        DisplayTests(fixtureResults);
+        _testRunner.Run();
     }
 
     private void ClearTests()
@@ -28,30 +30,24 @@ public class SceneController : MonoBehaviour
         }
     }
 
-    private void DisplayTests(IEnumerable<TestFixtureResult> fixtureResults)
+    private void DisplayResult(TestResult testResult)
     {
-        foreach (var fixture in fixtureResults)
+        var item = Instantiate(TestResultPrefab);
+
+        var button = item.GetComponent<Button>();
+
+        button.onClick.AddListener(() =>
         {
-            foreach (var result in fixture.TestResults)
-            {
-                var item = Instantiate(TestResultPrefab);
+            TestResultText.text = testResult.IsPassing ? "Test passed" :
+                                    "Test failed: " + testResult.Exception.Message;
+        });
 
-                var button = item.GetComponent<Button>();
+        var items = item.GetComponentsInChildren<Text>();
 
-                button.onClick.AddListener(() =>
-                {
-                    TestResultText.text = result.IsPassing ? "Test passed" :
-                                            "Test failed: " + result.Exception.Message;
-                });
+        items[0].text = string.Format("[{0}] {1}", testResult.FixtureName, testResult.TestName);
+        items[1].text = testResult.IsPassing ? "Passing" : "Failed";
+        items[1].color = testResult.IsPassing ? new Color(0, 0.5f, 0) : new Color(0.5f, 0, 0);
 
-                var items = item.GetComponentsInChildren<Text>();
-
-                items[0].text = string.Format("[{0}] {1}", fixture.Name, result.Name);
-                items[1].text = result.IsPassing ? "Passing" : "Failed";
-                items[1].color = result.IsPassing ? new Color(0, 0.5f, 0) : new Color(0.5f, 0, 0);
-
-                item.transform.SetParent(ScrollView.transform, false);
-            }
-        }
+        item.transform.SetParent(ScrollView.transform, false);
     }
 }

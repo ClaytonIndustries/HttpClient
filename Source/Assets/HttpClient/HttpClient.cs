@@ -16,6 +16,7 @@ namespace CI.HttpClient
 {
     public class HttpClient
     {
+        private const string DISPATCHER_GAMEOBJECT_NAME = "HttpClientDispatcher";
         private const int DEFAULT_BLOCK_SIZE = 10000;
         private const int DEFAULT_TIMEOUT = 100000;
         private const int DEFAULT_READ_WRITE_TIMEOUT = 300000;
@@ -96,12 +97,6 @@ namespace CI.HttpClient
             Headers = new Dictionary<string, string>();
             _requests = new List<HttpWebRequest>();
             _lock = new object();
-        }
-
-        public HttpClient(GameObject dispatcher)
-            : this()
-        {
-            _dispatcher = dispatcher.GetComponent<IDispatcher>();
         }
 
         /// <summary>
@@ -371,6 +366,22 @@ namespace CI.HttpClient
             });
         }
 
+        /// <summary>
+        /// Allows changing of the dispatcher, currently only used for testing purposes
+        /// </summary>
+        /// <typeparam name="T">The type of dispatcher to create</typeparam>
+        public void SetDispatcher<T>() where T : Component, IDispatcher
+        {
+            GameObject dispatcherGameObject = GameObject.Find(DISPATCHER_GAMEOBJECT_NAME);
+
+            if (dispatcherGameObject != null)
+            {
+                UnityEngine.Object.Destroy(dispatcherGameObject);
+            }
+
+            _dispatcher = new GameObject(DISPATCHER_GAMEOBJECT_NAME).AddComponent<T>();
+        }
+
 #if NETFX_CORE
         private async void QueueWorkItem(WorkItemHandler action)
         {
@@ -549,10 +560,19 @@ namespace CI.HttpClient
 
         private void CreateDispatcherGameObject()
         {
-            if (_dispatcher == null)
-            {
-                _dispatcher = new GameObject("HttpClientDispatcher").AddComponent<Dispatcher>();
-            }
+            //if (_dispatcher == null)
+            //{
+                GameObject dispatcherGameObject = GameObject.Find(DISPATCHER_GAMEOBJECT_NAME);
+
+                if (dispatcherGameObject == null)
+                {
+                    _dispatcher = new GameObject(DISPATCHER_GAMEOBJECT_NAME).AddComponent<Dispatcher>();
+                }
+                else
+                {
+                    _dispatcher = dispatcherGameObject.GetComponent<IDispatcher>();
+                }
+            //}
         }
     }
 }
