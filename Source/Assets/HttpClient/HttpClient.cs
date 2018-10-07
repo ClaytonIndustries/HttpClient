@@ -376,10 +376,17 @@ namespace CI.HttpClient
 
             if (dispatcherGameObject != null)
             {
-                UnityEngine.Object.Destroy(dispatcherGameObject);
-            }
+                foreach(var compontent in dispatcherGameObject.GetComponents(typeof(IDispatcher)))
+                {
+                    UnityEngine.Object.Destroy(compontent);
+                }
 
-            _dispatcher = new GameObject(DISPATCHER_GAMEOBJECT_NAME).AddComponent<T>();
+                dispatcherGameObject.AddComponent<T>();
+            }
+            else
+            {
+                _dispatcher = new GameObject(DISPATCHER_GAMEOBJECT_NAME).AddComponent<T>();
+            }
         }
 
 #if NETFX_CORE
@@ -560,19 +567,10 @@ namespace CI.HttpClient
 
         private void CreateDispatcherGameObject()
         {
-            //if (_dispatcher == null)
-            //{
-                GameObject dispatcherGameObject = GameObject.Find(DISPATCHER_GAMEOBJECT_NAME);
-
-                if (dispatcherGameObject == null)
-                {
-                    _dispatcher = new GameObject(DISPATCHER_GAMEOBJECT_NAME).AddComponent<Dispatcher>();
-                }
-                else
-                {
-                    _dispatcher = dispatcherGameObject.GetComponent<IDispatcher>();
-                }
-            //}
+            if (_dispatcher == null)
+            {
+                _dispatcher = new GameObject(DISPATCHER_GAMEOBJECT_NAME).AddComponent<Dispatcher>();
+            }
         }
     }
 }
