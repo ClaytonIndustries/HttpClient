@@ -13,4 +13,4 @@ Http Client is a plugin that makes it easy to make HTTP / HTTPS REST calls in Un
  
 ## Documentation
 
-Available [here](https://www.claytoninds.com/#httpclient)
+Available [here](https://github.com/ClaytonIndustries/HttpClient/wiki)
