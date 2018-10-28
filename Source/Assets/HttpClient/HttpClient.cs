@@ -161,6 +161,59 @@ namespace CI.HttpClient
         }
 
         /// <summary>
+        /// Sends a Delete request to the specified Uri and returns the response body as a string. An uploadStatusCallback can be specified to report upload progress
+        /// </summary>
+        /// <param name="uri">The Uri the request is sent to</param>
+        /// <param name="content">Data to send</param>
+        /// <param name="responseCallback">Callback raised once the request completes</param>
+        /// <param name="uploadStatusCallback">Callback that reports upload progress</param>
+        public void Delete(Uri uri, IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback = null)
+        {
+            CreateDispatcherGameObject();
+            QueueWorkItem((t) =>
+            {
+                try
+                {
+                    HttpWebRequest request = CreateRequest(uri);
+                    new HttpRequestWithBody(HttpAction.Delete, request, _dispatcher).Execute(content, responseCallback, uploadStatusCallback, UploadBlockSize);
+                    RemoveRequest(request);
+                }
+                catch (Exception e)
+                {
+                    RaiseErrorResponse(responseCallback, e);
+                }
+            });
+        }
+
+        /// <summary>
+        /// Sends a Delete request to the specified Uri and returns the response body as a byte array. An uploadStatusCallback can be specified to report upload progress 
+        /// and a completion option specifies if download progress should be reported
+        /// </summary>
+        /// <param name="uri">The Uri the request is sent to</param>
+        /// <param name="content">Data to send</param>
+        /// <param name="completionOption">Determines how the response should be read</param>
+        /// <param name="responseCallback">Callback raised once the request completes</param>
+        /// <param name="uploadStatusCallback">Callback that reports upload progress</param>
+        public void Delete(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback,
+            Action<UploadStatusMessage> uploadStatusCallback = null)
+        {
+            CreateDispatcherGameObject();
+            QueueWorkItem((t) =>
+            {
+                try
+                {
+                    HttpWebRequest request = CreateRequest(uri);
+                    new HttpRequestWithBody(HttpAction.Delete, request, _dispatcher).Execute(content, completionOption, responseCallback, uploadStatusCallback, DownloadBlockSize, UploadBlockSize);
+                    RemoveRequest(request);
+                }
+                catch (Exception e)
+                {
+                    RaiseErrorResponse(responseCallback, e);
+                }
+            });
+        }
+
+        /// <summary>
         /// Sends a GET request to the specified Uri and returns the response body as a string 
         /// </summary>
         /// <param name="uri">The Uri the request is sent to</param>
