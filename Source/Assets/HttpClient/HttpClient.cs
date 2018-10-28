@@ -126,7 +126,7 @@ namespace CI.HttpClient
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpDelete(request, _dispatcher).Delete(responseCallback);
+                    new HttpRequestWithoutBody(HttpAction.Delete, request, _dispatcher).Execute(responseCallback);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -140,7 +140,7 @@ namespace CI.HttpClient
         /// Sends a DELETE request to the specified Uri and returns the response body as a byte array. A completion option specifies if download progress should be reported
         /// </summary>
         /// <param name="uri">The Uri the request is sent to</param>
-        /// <param name="completionOption">Determines how he response should be read</param>
+        /// <param name="completionOption">Determines how the response should be read</param>
         /// <param name="responseCallback">Callback raised once the request completes</param>
         public void Delete(Uri uri, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback)
         {
@@ -150,7 +150,7 @@ namespace CI.HttpClient
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpDelete(request, _dispatcher).Delete(completionOption, responseCallback, DownloadBlockSize);
+                    new HttpRequestWithoutBody(HttpAction.Delete, request, _dispatcher).Execute(completionOption, responseCallback, DownloadBlockSize);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -173,7 +173,7 @@ namespace CI.HttpClient
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpGet(request, _dispatcher).GetString(responseCallback);
+                    new HttpRequestWithoutBody(HttpAction.Get, request, _dispatcher).Execute(responseCallback);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -187,7 +187,7 @@ namespace CI.HttpClient
         /// Sends a GET request to the specified Uri and returns the response body as a byte array. A completion option specifies if download progress should be reported
         /// </summary>
         /// <param name="uri">The Uri the request is sent to</param>
-        /// <param name="completionOption">Determines how he response should be read</param>
+        /// <param name="completionOption">Determines how the response should be read</param>
         /// <param name="responseCallback">Callback raised once the request completes</param>
         public void GetByteArray(Uri uri, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback)
         {
@@ -197,7 +197,7 @@ namespace CI.HttpClient
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpGet(request, _dispatcher).GetByteArray(completionOption, responseCallback, DownloadBlockSize);
+                    new HttpRequestWithoutBody(HttpAction.Get, request, _dispatcher).Execute(completionOption, responseCallback, DownloadBlockSize);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -222,7 +222,7 @@ namespace CI.HttpClient
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpPatch(request, _dispatcher).Patch(content, responseCallback, uploadStatusCallback, UploadBlockSize);
+                    new HttpRequestWithBody(HttpAction.Patch, request, _dispatcher).Execute(content, responseCallback, uploadStatusCallback, UploadBlockSize);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -238,7 +238,7 @@ namespace CI.HttpClient
         /// </summary>
         /// <param name="uri">The Uri the request is sent to</param>
         /// <param name="content">Data to send</param>
-        /// <param name="completionOption">Determines how he response should be read</param>
+        /// <param name="completionOption">Determines how the response should be read</param>
         /// <param name="responseCallback">Callback raised once the request completes</param>
         /// <param name="uploadStatusCallback">Callback that reports upload progress</param>
         public void Patch(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback,
@@ -250,7 +250,7 @@ namespace CI.HttpClient
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpPatch(request, _dispatcher).Patch(content, completionOption, responseCallback, uploadStatusCallback, DownloadBlockSize, UploadBlockSize);
+                    new HttpRequestWithBody(HttpAction.Patch, request, _dispatcher).Execute(content, completionOption, responseCallback, uploadStatusCallback, DownloadBlockSize, UploadBlockSize);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -275,7 +275,7 @@ namespace CI.HttpClient
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpPost(request, _dispatcher).Post(content, responseCallback, uploadStatusCallback, UploadBlockSize);
+                    new HttpRequestWithBody(HttpAction.Post, request, _dispatcher).Execute(content, responseCallback, uploadStatusCallback, UploadBlockSize);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -291,7 +291,7 @@ namespace CI.HttpClient
         /// </summary>
         /// <param name="uri">The Uri the request is sent to</param>
         /// <param name="content">Data to send</param>
-        /// <param name="completionOption">Determines how he response should be read</param>
+        /// <param name="completionOption">Determines how the response should be read</param>
         /// <param name="responseCallback">Callback raised once the request completes</param>
         /// <param name="uploadStatusCallback">Callback that reports upload progress</param>
         public void Post(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback,
@@ -303,7 +303,7 @@ namespace CI.HttpClient
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpPost(request, _dispatcher).Post(content, completionOption, responseCallback, uploadStatusCallback, DownloadBlockSize, UploadBlockSize);
+                    new HttpRequestWithBody(HttpAction.Post, request, _dispatcher).Execute(content, completionOption, responseCallback, uploadStatusCallback, DownloadBlockSize, UploadBlockSize);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -328,7 +328,7 @@ namespace CI.HttpClient
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpPut(request, _dispatcher).Put(content, responseCallback, uploadStatusCallback, UploadBlockSize);
+                    new HttpRequestWithBody(HttpAction.Put, request, _dispatcher).Execute(content, responseCallback, uploadStatusCallback, UploadBlockSize);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -344,7 +344,7 @@ namespace CI.HttpClient
         /// </summary>
         /// <param name="uri">The Uri the request is sent to</param>
         /// <param name="content">Data to send</param>
-        /// <param name="completionOption">Determines how he response should be read</param>
+        /// <param name="completionOption">Determines how the response should be read</param>
         /// <param name="responseCallback">Callback raised once the request completes</param>
         /// <param name="uploadStatusCallback">Callback that reports upload progress</param>
         public void Put(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback,
@@ -356,7 +356,7 @@ namespace CI.HttpClient
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpPut(request, _dispatcher).Put(content, completionOption, responseCallback, uploadStatusCallback, DownloadBlockSize, UploadBlockSize);
+                    new HttpRequestWithBody(HttpAction.Put, request, _dispatcher).Execute(content, completionOption, responseCallback, uploadStatusCallback, DownloadBlockSize, UploadBlockSize);
                     RemoveRequest(request);
                 }
                 catch (Exception e)

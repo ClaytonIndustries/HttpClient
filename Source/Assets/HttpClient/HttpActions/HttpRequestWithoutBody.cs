@@ -3,19 +3,20 @@ using System.Net;
 
 namespace CI.HttpClient.Core
 {
-    public class HttpGet : HttpBase
+    public class HttpRequestWithoutBody : HttpBase
     {
-        public HttpGet(HttpWebRequest request, IDispatcher dispatcher)
+        public HttpRequestWithoutBody(HttpAction httpAction, HttpWebRequest request, IDispatcher dispatcher)
         {
             _request = request;
             _dispatcher = dispatcher;
+
+            SetMethod(httpAction);
         }
 
-        public void GetString(Action<HttpResponseMessage<string>> responseCallback)
+        public void Execute(Action<HttpResponseMessage<string>> responseCallback)
         {
             try
             {
-                SetMethod(HttpAction.Get);
                 HandleStringResponseRead(responseCallback);
             }
             catch (Exception e)
@@ -24,11 +25,10 @@ namespace CI.HttpClient.Core
             }
         }
 
-        public void GetByteArray(HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback, int blockSize)
+        public void Execute(HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback, int blockSize)
         {
             try
             {
-                SetMethod(HttpAction.Get);
                 HandleByteArrayResponseRead(responseCallback, completionOption, blockSize);
             }
             catch (Exception e)
