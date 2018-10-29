@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 
 namespace CI.HttpClient
@@ -7,6 +6,11 @@ namespace CI.HttpClient
     public class ByteArrayContent : IHttpContent
     {
         private readonly byte[] _content;
+
+        public ContentReadAction ContentReadAction
+        {
+            get { return ContentReadAction.Single; }
+        }
 
         /// <summary>
         /// Not currently implemented
@@ -21,18 +25,16 @@ namespace CI.HttpClient
         public ByteArrayContent(byte[] content, string mediaType)
         {
             _content = content;
-            Headers = new Dictionary<string, string>();
-            Headers.Add("Content-Type", mediaType);
-        }
 
-        public ContentReadAction ContentReadAction
-        {
-            get { return ContentReadAction.ByteArray; }
+            Headers = new Dictionary<string, string>()
+            {
+                { "Content-Type", mediaType }
+            };
         }
 
         public long GetContentLength()
         {
-            return _content.Length;
+            return _content.LongLength;
         }
 
         public string GetContentType()
@@ -45,14 +47,9 @@ namespace CI.HttpClient
             return string.Empty;
         }
 
-        public byte[] ReadAsByteArray()
-        {
-            return _content;
-        }
-
         public Stream ReadAsStream()
         {
-            throw new NotImplementedException();
+            return new MemoryStream(_content);
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -9,14 +8,11 @@ namespace CI.HttpClient
     {
         private const string DEFAULT_MEDIA_TYPE = "text/plain";
 
-        private readonly string _content;
-        private readonly Encoding _encoding;
-
-        private byte[] _serialisedContent;
+        private readonly byte[] _content;
 
         public ContentReadAction ContentReadAction
         {
-            get { return ContentReadAction.ByteArray; }
+            get { return ContentReadAction.Single; }
         }
 
         /// <summary>
@@ -51,15 +47,17 @@ namespace CI.HttpClient
         /// <param name="mediaType">The media type</param>
         public StringContent(string content, Encoding encoding, string mediaType)
         {
-            _content = content;
-            _encoding = encoding;
-            Headers = new Dictionary<string, string>();
-            Headers.Add("Content-Type", mediaType + "; charset=" + _encoding.WebName);
+            _content = encoding.GetBytes(content);
+
+            Headers = new Dictionary<string, string>()
+            {
+                { "Content-Type", mediaType + "; charset=" + encoding.WebName }
+            };
         }
 
         public long GetContentLength()
         {
-            return ReadAsByteArray().Length;
+            return _content.LongLength;
         }
 
         public string GetContentType()
@@ -72,19 +70,9 @@ namespace CI.HttpClient
             return string.Empty;
         }
 
-        public byte[] ReadAsByteArray()
-        {
-            if(_serialisedContent == null)
-            {
-                _serialisedContent = _encoding.GetBytes(_content);
-            }
-
-            return _serialisedContent;
-        }
-
         public Stream ReadAsStream()
         {
-            throw new NotImplementedException();
+            return new MemoryStream(_content);
         }
     }
 }

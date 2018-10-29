@@ -7,13 +7,11 @@ namespace CI.HttpClient
 {
     public class FormUrlEncodedContent : IHttpContent
     {
-        private readonly IEnumerable<KeyValuePair<string, string>> _nameValueCollection;
-
-        private byte[] _serialisedContent;
+        private readonly byte[] _content;
 
         public ContentReadAction ContentReadAction
         {
-            get { return ContentReadAction.ByteArray; }
+            get { return ContentReadAction.Single; }
         }
 
         /// <summary>
@@ -27,14 +25,17 @@ namespace CI.HttpClient
         /// <param name="nameValueCollection">The key/value pairs to send</param>
         public FormUrlEncodedContent(IEnumerable<KeyValuePair<string, string>> nameValueCollection)
         {
-            _nameValueCollection = nameValueCollection;
-            Headers = new Dictionary<string, string>();
-            Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+            _content = SerialiseContent(nameValueCollection);
+
+            Headers = new Dictionary<string, string>()
+            {
+                { "Content-Type", "application/x-www-form-urlencoded" }
+            };
         }
 
         public long GetContentLength()
         {
-            return ReadAsByteArray().Length;
+            return _content.LongLength;
         }
 
         public string GetContentType()
@@ -47,26 +48,21 @@ namespace CI.HttpClient
             return string.Empty;
         }
 
-        public byte[] ReadAsByteArray()
-        {
-            if (_serialisedContent == null)
-            {
-                StringBuilder stringBuilder = new StringBuilder();
-
-                foreach (KeyValuePair<string, string> nameValue in _nameValueCollection)
-                {
-                    UrlEncoded(stringBuilder, nameValue.Key, nameValue.Value);
-                }
-
-                _serialisedContent = Encoding.ASCII.GetBytes(stringBuilder.ToString());
-            }
-
-            return _serialisedContent;
-        }
-
         public Stream ReadAsStream()
         {
-            throw new NotImplementedException();
+            return new MemoryStream(_content);
+        }
+
+        private byte[] SerialiseContent(IEnumerable<KeyValuePair<string, string>> nameValueCollection)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+
+            foreach (KeyValuePair<string, string> nameValue in nameValueCollection)
+            {
+                UrlEncoded(stringBuilder, nameValue.Key, nameValue.Value);
+            }
+
+            return Encoding.ASCII.GetBytes(stringBuilder.ToString());
         }
 
         private void UrlEncoded(StringBuilder sb, string name, string value)

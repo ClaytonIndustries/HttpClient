@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 
 namespace CI.HttpClient
@@ -10,7 +9,7 @@ namespace CI.HttpClient
 
         public ContentReadAction ContentReadAction
         {
-            get { return ContentReadAction.Stream; }
+            get { return ContentReadAction.Single; }
         }
 
         /// <summary>
@@ -26,8 +25,11 @@ namespace CI.HttpClient
         public StreamContent(Stream stream, string mediaType)
         {
             _stream = stream;
-            Headers = new Dictionary<string, string>();
-            Headers.Add("Content-Type", mediaType);
+
+            Headers = new Dictionary<string, string>()
+            {
+                { "Content-Type", mediaType }
+            };
         }
 
         public long GetContentLength()
@@ -43,11 +45,6 @@ namespace CI.HttpClient
             }
 
             return string.Empty;
-        }
-
-        public byte[] ReadAsByteArray()
-        {
-            throw new NotImplementedException();
         }
 
         public Stream ReadAsStream()

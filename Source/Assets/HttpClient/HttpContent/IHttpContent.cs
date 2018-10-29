@@ -7,10 +7,8 @@ namespace CI.HttpClient
     {
         ContentReadAction ContentReadAction { get; }
         IDictionary<string, string> Headers { get; }
-
         long GetContentLength();
         string GetContentType();
-        byte[] ReadAsByteArray();
         Stream ReadAsStream();
     }
 }

@@ -55,7 +55,7 @@ namespace CI.HttpClient.Core
         {
             using (Stream stream = _request.GetRequestStream())
             {
-                if (content.ContentReadAction == ContentReadAction.Multi)
+                if (content.ContentReadAction == ContentReadAction.Multipart)
                 {
                     WriteMultipleContent(stream, content, uploadStatusCallback, blockSize);
                 }
@@ -115,41 +115,22 @@ namespace CI.HttpClient.Core
             long contentLength = content.GetContentLength();
             int contentUploadedThisRound = 0;
             int totalContentUploaded = 0;
-            byte[] requestBuffer = null;
-            Stream contentStream = null;
-
-            if (content.ContentReadAction == ContentReadAction.Stream)
-            {
-                requestBuffer = new byte[blockSize];
-                contentStream = content.ReadAsStream();
-            }
-            else
-            {
-                requestBuffer = content.ReadAsByteArray();
-            }
+            byte[] requestBuffer = new byte[blockSize];
+            Stream contentStream = content.ReadAsStream();
 
             while (totalContentUploaded != contentLength)
             {
                 contentUploadedThisRound = 0;
 
-                if (content.ContentReadAction == ContentReadAction.Stream)
+                int read = 0;
+                while ((read = contentStream.Read(requestBuffer, read, blockSize - read)) > 0)
                 {
-                    int read = 0;
-                    while ((read = contentStream.Read(requestBuffer, read, blockSize - read)) > 0)
-                    {
-                        contentUploadedThisRound += read;
-                    }
-
-                    if (contentUploadedThisRound > 0)
-                    {
-                        stream.Write(requestBuffer, 0, contentUploadedThisRound);
-                    }
+                    contentUploadedThisRound += read;
                 }
-                else
-                {
-                    contentUploadedThisRound = blockSize > (requestBuffer.Length - totalContentUploaded) ? (requestBuffer.Length - totalContentUploaded) : blockSize;
 
-                    stream.Write(requestBuffer, totalContentUploaded, contentUploadedThisRound);
+                if (contentUploadedThisRound > 0)
+                {
+                    stream.Write(requestBuffer, 0, contentUploadedThisRound);
                 }
 
                 totalContentUploaded += contentUploadedThisRound;

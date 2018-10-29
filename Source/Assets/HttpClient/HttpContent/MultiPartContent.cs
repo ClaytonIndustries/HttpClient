@@ -21,7 +21,7 @@ namespace CI.HttpClient
 
         public ContentReadAction ContentReadAction
         {
-            get { return ContentReadAction.Multi; }
+            get { return ContentReadAction.Multipart; }
         }
 
         /// <summary>
@@ -55,8 +55,12 @@ namespace CI.HttpClient
         {
             _content = new List<IHttpContent>();
             _boundary = boundary;
-            Headers = new Dictionary<string, string>();
-            Headers.Add("Content-Type", "multipart/" + subtype + "; boundary=" + boundary);
+
+            Headers = new Dictionary<string, string>()
+            {
+                { "Content-Type", "multipart/" + subtype + "; boundary=" + boundary }
+            };
+
             CreateDelimiters();
         }
 
@@ -116,11 +120,6 @@ namespace CI.HttpClient
             }
 
             return string.Empty;
-        }
-
-        public byte[] ReadAsByteArray()
-        {
-            throw new NotImplementedException();
         }
 
         public Stream ReadAsStream()
