@@ -97,6 +97,8 @@ namespace CI.HttpClient
             Headers = new Dictionary<string, string>();
             _requests = new List<HttpWebRequest>();
             _lock = new object();
+
+            CreateDispatcherGameObject();
         }
 
         /// <summary>
@@ -120,13 +122,12 @@ namespace CI.HttpClient
         /// <param name="responseCallback">Callback raised once the request completes</param>
         public void Delete(Uri uri, Action<HttpResponseMessage<string>> responseCallback)
         {
-            CreateDispatcherGameObject();
             QueueWorkItem((t) =>
             {
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpRequestWithoutBody(HttpAction.Delete, request, _dispatcher).Execute(responseCallback);
+                    new HttpRequest(HttpAction.Delete, request, _dispatcher).Execute(responseCallback);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -144,13 +145,12 @@ namespace CI.HttpClient
         /// <param name="responseCallback">Callback raised once the request completes</param>
         public void Delete(Uri uri, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback)
         {
-            CreateDispatcherGameObject();
             QueueWorkItem((t) =>
             {
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpRequestWithoutBody(HttpAction.Delete, request, _dispatcher).Execute(completionOption, responseCallback, DownloadBlockSize);
+                    new HttpRequest(HttpAction.Delete, request, _dispatcher).Execute(completionOption, responseCallback, DownloadBlockSize);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -169,13 +169,12 @@ namespace CI.HttpClient
         /// <param name="uploadStatusCallback">Callback that reports upload progress</param>
         public void Delete(Uri uri, IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            CreateDispatcherGameObject();
             QueueWorkItem((t) =>
             {
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpRequestWithBody(HttpAction.Delete, request, _dispatcher).Execute(content, responseCallback, uploadStatusCallback, UploadBlockSize);
+                    new HttpRequest(HttpAction.Delete, request, _dispatcher).Execute(content, responseCallback, uploadStatusCallback, UploadBlockSize);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -197,13 +196,12 @@ namespace CI.HttpClient
         public void Delete(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback,
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            CreateDispatcherGameObject();
             QueueWorkItem((t) =>
             {
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpRequestWithBody(HttpAction.Delete, request, _dispatcher).Execute(content, completionOption, responseCallback, uploadStatusCallback, DownloadBlockSize, UploadBlockSize);
+                    new HttpRequest(HttpAction.Delete, request, _dispatcher).Execute(content, completionOption, responseCallback, uploadStatusCallback, DownloadBlockSize, UploadBlockSize);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -220,13 +218,12 @@ namespace CI.HttpClient
         /// <param name="responseCallback">Callback raised once the request completes</param>
         public void GetString(Uri uri, Action<HttpResponseMessage<string>> responseCallback)
         {
-            CreateDispatcherGameObject();
             QueueWorkItem((t) =>
             {
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpRequestWithoutBody(HttpAction.Get, request, _dispatcher).Execute(responseCallback);
+                    new HttpRequest(HttpAction.Get, request, _dispatcher).Execute(responseCallback);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -244,13 +241,12 @@ namespace CI.HttpClient
         /// <param name="responseCallback">Callback raised once the request completes</param>
         public void GetByteArray(Uri uri, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback)
         {
-            CreateDispatcherGameObject();
             QueueWorkItem((t) =>
             {
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpRequestWithoutBody(HttpAction.Get, request, _dispatcher).Execute(completionOption, responseCallback, DownloadBlockSize);
+                    new HttpRequest(HttpAction.Get, request, _dispatcher).Execute(completionOption, responseCallback, DownloadBlockSize);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -269,13 +265,12 @@ namespace CI.HttpClient
         /// <param name="uploadStatusCallback">Callback that reports upload progress</param>
         public void Patch(Uri uri, IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            CreateDispatcherGameObject();
             QueueWorkItem((t) =>
             {
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpRequestWithBody(HttpAction.Patch, request, _dispatcher).Execute(content, responseCallback, uploadStatusCallback, UploadBlockSize);
+                    new HttpRequest(HttpAction.Patch, request, _dispatcher).Execute(content, responseCallback, uploadStatusCallback, UploadBlockSize);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -297,13 +292,12 @@ namespace CI.HttpClient
         public void Patch(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback,
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            CreateDispatcherGameObject();
             QueueWorkItem((t) =>
             {
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpRequestWithBody(HttpAction.Patch, request, _dispatcher).Execute(content, completionOption, responseCallback, uploadStatusCallback, DownloadBlockSize, UploadBlockSize);
+                    new HttpRequest(HttpAction.Patch, request, _dispatcher).Execute(content, completionOption, responseCallback, uploadStatusCallback, DownloadBlockSize, UploadBlockSize);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -322,13 +316,12 @@ namespace CI.HttpClient
         /// <param name="uploadStatusCallback">Callback that reports upload progress</param>
         public void Post(Uri uri, IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            CreateDispatcherGameObject();
             QueueWorkItem((t) =>
             {
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpRequestWithBody(HttpAction.Post, request, _dispatcher).Execute(content, responseCallback, uploadStatusCallback, UploadBlockSize);
+                    new HttpRequest(HttpAction.Post, request, _dispatcher).Execute(content, responseCallback, uploadStatusCallback, UploadBlockSize);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -350,13 +343,12 @@ namespace CI.HttpClient
         public void Post(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback,
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            CreateDispatcherGameObject();
             QueueWorkItem((t) =>
             {
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpRequestWithBody(HttpAction.Post, request, _dispatcher).Execute(content, completionOption, responseCallback, uploadStatusCallback, DownloadBlockSize, UploadBlockSize);
+                    new HttpRequest(HttpAction.Post, request, _dispatcher).Execute(content, completionOption, responseCallback, uploadStatusCallback, DownloadBlockSize, UploadBlockSize);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -375,13 +367,12 @@ namespace CI.HttpClient
         /// <param name="uploadStatusCallback">Callback that reports upload progress</param>
         public void Put(Uri uri, IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            CreateDispatcherGameObject();
             QueueWorkItem((t) =>
             {
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpRequestWithBody(HttpAction.Put, request, _dispatcher).Execute(content, responseCallback, uploadStatusCallback, UploadBlockSize);
+                    new HttpRequest(HttpAction.Put, request, _dispatcher).Execute(content, responseCallback, uploadStatusCallback, UploadBlockSize);
                     RemoveRequest(request);
                 }
                 catch (Exception e)
@@ -403,13 +394,12 @@ namespace CI.HttpClient
         public void Put(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback,
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            CreateDispatcherGameObject();
             QueueWorkItem((t) =>
             {
                 try
                 {
                     HttpWebRequest request = CreateRequest(uri);
-                    new HttpRequestWithBody(HttpAction.Put, request, _dispatcher).Execute(content, completionOption, responseCallback, uploadStatusCallback, DownloadBlockSize, UploadBlockSize);
+                    new HttpRequest(HttpAction.Put, request, _dispatcher).Execute(content, completionOption, responseCallback, uploadStatusCallback, DownloadBlockSize, UploadBlockSize);
                     RemoveRequest(request);
                 }
                 catch (Exception e)

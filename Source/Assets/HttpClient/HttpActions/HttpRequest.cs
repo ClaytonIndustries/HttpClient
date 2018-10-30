@@ -3,14 +3,38 @@ using System.Net;
 
 namespace CI.HttpClient.Core
 {
-    public class HttpRequestWithBody : HttpBase
+    public class HttpRequest : HttpBase
     {
-        public HttpRequestWithBody(HttpAction httpAction, HttpWebRequest request, IDispatcher dispatcher)
+        public HttpRequest(HttpAction httpAction, HttpWebRequest request, IDispatcher dispatcher)
         {
             _request = request;
             _dispatcher = dispatcher;
 
             SetMethod(httpAction);
+        }
+
+        public void Execute(Action<HttpResponseMessage<string>> responseCallback)
+        {
+            try
+            {
+                HandleStringResponseRead(responseCallback);
+            }
+            catch (Exception e)
+            {
+                RaiseErrorResponse(responseCallback, e);
+            }
+        }
+
+        public void Execute(HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback, int downloadBlockSize)
+        {
+            try
+            {
+                HandleByteArrayResponseRead(responseCallback, completionOption, downloadBlockSize);
+            }
+            catch (Exception e)
+            {
+                RaiseErrorResponse(responseCallback, e);
+            }
         }
 
         public void Execute(IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback, int uploadBlockSize)
