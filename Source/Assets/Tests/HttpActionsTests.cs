@@ -26,10 +26,10 @@ namespace Assets.TestRunner
         public void HttpClient_Get()
         {
             // Arrange
-            HttpResponseMessage<string> response = null;
+            HttpResponseMessage response = null;
 
             // Act
-            _sut.GetString(new Uri("https://httpbin.org/get"), r =>
+            _sut.Get(new Uri("https://httpbin.org/get"), HttpCompletionOption.AllResponseContent, r =>
             {
                 response = r;
 
@@ -46,10 +46,10 @@ namespace Assets.TestRunner
         public void HttpClient_Post()
         {
             // Arrange
-            HttpResponseMessage<string> response = null;
+            HttpResponseMessage response = null;
 
             // Act
-            _sut.Post(new Uri("https://httpbin.org/post"), new StringContent("Some Content"), r =>
+            _sut.Post(new Uri("https://httpbin.org/post"), new StringContent("Some Content"), HttpCompletionOption.AllResponseContent, r =>
             {
                 response = r;
 
@@ -66,10 +66,10 @@ namespace Assets.TestRunner
         public void HttpClient_Put()
         {
             // Arrange
-            HttpResponseMessage<string> response = null;
+            HttpResponseMessage response = null;
 
             // Act
-            _sut.Put(new Uri("https://httpbin.org/put"), new StringContent("Some Content"), r =>
+            _sut.Put(new Uri("https://httpbin.org/put"), new StringContent("Some Content"), HttpCompletionOption.AllResponseContent, r =>
             {
                 response = r;
 
@@ -86,10 +86,10 @@ namespace Assets.TestRunner
         public void HttpClient_Patch()
         {
             // Arrange
-            HttpResponseMessage<string> response = null;
+            HttpResponseMessage response = null;
 
             // Act
-            _sut.Patch(new Uri("https://httpbin.org/patch"), new StringContent("Some Content"), r =>
+            _sut.Patch(new Uri("https://httpbin.org/patch"), new StringContent("Some Content"), HttpCompletionOption.AllResponseContent, r =>
             {
                 response = r;
 
@@ -106,10 +106,10 @@ namespace Assets.TestRunner
         public void HttpClient_Delete()
         {
             // Arrange
-            HttpResponseMessage<string> response = null;
+            HttpResponseMessage response = null;
 
             // Act
-            _sut.Delete(new Uri("https://httpbin.org/delete"), r =>
+            _sut.Delete(new Uri("https://httpbin.org/delete"), HttpCompletionOption.AllResponseContent, r =>
             {
                 response = r;
 

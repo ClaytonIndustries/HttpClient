@@ -1,13 +1,14 @@
 ﻿using System;
+using System.IO;
 using System.Net;
+using System.Text;
 
 namespace CI.HttpClient
 {
     /// <summary>
     /// Represents a HTTP response message including the status code and data
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class HttpResponseMessage<T>
+    public class HttpResponseMessage
     {
         /// <summary>
         /// The original request
@@ -28,7 +29,7 @@ namespace CI.HttpClient
         /// <summary>
         /// Data that has been read from the server
         /// </summary>
-        public T Data
+        public byte[] Data
         {
             get; set;
         }
@@ -105,6 +106,21 @@ namespace CI.HttpClient
         public Exception Exception
         {
             get; set;
+        }
+
+        public string ReadAsString()
+        {
+            return Encoding.UTF8.GetString(Data);
+        }
+
+        public byte[] ReadAsBytes()
+        {
+            return Data;
+        }
+
+        public Stream ReadAsStream()
+        {
+            return new MemoryStream(Data);
         }
     }
 }

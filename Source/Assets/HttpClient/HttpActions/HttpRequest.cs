@@ -13,11 +13,11 @@ namespace CI.HttpClient.Core
             SetMethod(httpAction);
         }
 
-        public void Execute(Action<HttpResponseMessage<string>> responseCallback)
+        public void Execute(HttpCompletionOption completionOption, Action<HttpResponseMessage> responseCallback, int downloadBlockSize)
         {
             try
             {
-                HandleStringResponseRead(responseCallback);
+                HandleResponseRead(responseCallback, completionOption, downloadBlockSize);
             }
             catch (Exception e)
             {
@@ -25,34 +25,7 @@ namespace CI.HttpClient.Core
             }
         }
 
-        public void Execute(HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback, int downloadBlockSize)
-        {
-            try
-            {
-                HandleByteArrayResponseRead(responseCallback, completionOption, downloadBlockSize);
-            }
-            catch (Exception e)
-            {
-                RaiseErrorResponse(responseCallback, e);
-            }
-        }
-
-        public void Execute(IHttpContent content, Action<HttpResponseMessage<string>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback, int uploadBlockSize)
-        {
-            try
-            {
-                SetContentHeaders(content);
-
-                HandleRequestWrite(content, uploadStatusCallback, uploadBlockSize);
-                HandleStringResponseRead(responseCallback);
-            }
-            catch (Exception e)
-            {
-                RaiseErrorResponse(responseCallback, e);
-            }
-        }
-
-        public void Execute(IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage<byte[]>> responseCallback, Action<UploadStatusMessage> uploadStatusCallback,
+        public void Execute(IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage> responseCallback, Action<UploadStatusMessage> uploadStatusCallback,
             int downloadBlockSize, int uploadBlockSize)
         {
             try
@@ -60,7 +33,7 @@ namespace CI.HttpClient.Core
                 SetContentHeaders(content);
 
                 HandleRequestWrite(content, uploadStatusCallback, uploadBlockSize);
-                HandleByteArrayResponseRead(responseCallback, completionOption, downloadBlockSize);
+                HandleResponseRead(responseCallback, completionOption, downloadBlockSize);
             }
             catch (Exception e)
             {

@@ -30,12 +30,12 @@ namespace Assets.Tests
             const string username = "username";
             const string password = "password";
 
-            HttpResponseMessage<string> response = null;
+            HttpResponseMessage response = null;
 
             _sut.Headers.Add("Authorization", AuthHelper.CreateBasicAuthHeader(username, password));
 
             // Act
-            _sut.GetString(new Uri(string.Format("https://httpbin.org/basic-auth/{0}/{1}", username, password)), r =>
+            _sut.Get(new Uri(string.Format("https://httpbin.org/basic-auth/{0}/{1}", username, password)), HttpCompletionOption.AllResponseContent, r =>
             {
                 response = r;
 
@@ -54,12 +54,12 @@ namespace Assets.Tests
             // Arrange
             const string token = "1234567890";
 
-            HttpResponseMessage<string> response = null;
+            HttpResponseMessage response = null;
 
             _sut.Headers.Add("Authorization", AuthHelper.CreateOAuth2Header(token));
 
             // Act
-            _sut.GetString(new Uri(string.Format("https://httpbin.org/bearer")), r =>
+            _sut.Get(new Uri(string.Format("https://httpbin.org/bearer")), HttpCompletionOption.AllResponseContent, r =>
             {
                 response = r;
 

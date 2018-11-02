@@ -143,71 +143,7 @@ namespace CI.HttpClient.Core
         }
 
 #if NETFX_CORE
-        protected void HandleStringResponseRead(Action<HttpResponseMessage<string>> responseCallback)
-        {
-            try
-            {
-                _response = (HttpWebResponse)_request.GetResponseAsync().Result;
-            }
-            catch (AggregateException e)
-            {
-                if (e.InnerExceptions.Any() && e.InnerExceptions.First() is WebException)
-                {
-                    _response = (HttpWebResponse)(e.InnerExceptions.First() as WebException).Response;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            if (_response == null)
-            {
-                throw new Exception("Server did not return a response");
-            }
-
-            using (StreamReader streamReader = new StreamReader(_response.GetResponseStream()))
-            {
-                if (responseCallback == null)
-                {
-                    return;
-                }
-
-                RaiseResponseCallback(responseCallback, streamReader.ReadToEnd(), _response.ContentLength, _response.ContentLength);
-            }
-        }
-#else
-        protected void HandleStringResponseRead(Action<HttpResponseMessage<string>> responseCallback)
-        {
-            try
-            {
-                _response = (HttpWebResponse)_request.GetResponse();
-            }
-            catch (WebException e)
-            {
-                _response = (HttpWebResponse)e.Response;
-            }
-
-            if (_response == null)
-            {
-                throw new Exception("Server did not return a response");
-            }
-
-            using (StreamReader streamReader = new StreamReader(_response.GetResponseStream()))
-            {
-                if (responseCallback == null)
-                {
-                    return;
-                }
-
-                RaiseResponseCallback(responseCallback, streamReader.ReadToEnd(), _response.ContentLength, _response.ContentLength);
-            }
-        }
-#endif
-
-
-#if NETFX_CORE
-        protected void HandleByteArrayResponseRead(Action<HttpResponseMessage<byte[]>> responseCallback, HttpCompletionOption completionOption, int blockSize)
+        protected void HandleResponseRead(Action<HttpResponseMessage<byte[]>> responseCallback, HttpCompletionOption completionOption, int blockSize)
         {
             try
             {
@@ -275,7 +211,7 @@ namespace CI.HttpClient.Core
             }
         }
 #else
-        protected void HandleByteArrayResponseRead(Action<HttpResponseMessage<byte[]>> responseCallback, HttpCompletionOption completionOption, int blockSize)
+        protected void HandleResponseRead(Action<HttpResponseMessage> responseCallback, HttpCompletionOption completionOption, int blockSize)
         {
             try
             {
@@ -353,13 +289,13 @@ namespace CI.HttpClient.Core
             }
         }
 
-        private void RaiseResponseCallback<T>(Action<HttpResponseMessage<T>> responseCallback, T data, long contentReadThisRound, long totalContentRead)
+        private void RaiseResponseCallback(Action<HttpResponseMessage> responseCallback, byte[] data, long contentReadThisRound, long totalContentRead)
         {
             _dispatcher.Enqueue(() =>
             {
                 try
                 {
-                    responseCallback(new HttpResponseMessage<T>()
+                    responseCallback(new HttpResponseMessage()
                     {
                         OriginalRequest = _request,
                         OriginalResponse = _response,
@@ -378,7 +314,7 @@ namespace CI.HttpClient.Core
             });
         }
 
-        protected void RaiseErrorResponse<T>(Action<HttpResponseMessage<T>> action, Exception exception)
+        protected void RaiseErrorResponse(Action<HttpResponseMessage> action, Exception exception)
         {
             if (action != null)
             {
@@ -386,7 +322,7 @@ namespace CI.HttpClient.Core
                 {
                     try
                     {
-                        action(new HttpResponseMessage<T>()
+                        action(new HttpResponseMessage()
                         {
                             OriginalRequest = _request,
                             OriginalResponse = _response,
@@ -403,14 +339,14 @@ namespace CI.HttpClient.Core
             }
         }
 
-        private void RaiseAbortedResponse<T>(Action<HttpResponseMessage<T>> action)
+        private void RaiseAbortedResponse(Action<HttpResponseMessage> action)
         {
             if (_isAborted)
             {
                 return;
             }
 
-            action(new HttpResponseMessage<T>()
+            action(new HttpResponseMessage()
             {
                 OriginalRequest = null,
                 OriginalResponse = null,
