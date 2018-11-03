@@ -212,7 +212,7 @@ namespace CI.HttpClient
                     UnityEngine.Object.Destroy(compontent);
                 }
 
-                dispatcherGameObject.AddComponent<T>();
+                _dispatcher = dispatcherGameObject.AddComponent<T>();
             }
             else
             {
