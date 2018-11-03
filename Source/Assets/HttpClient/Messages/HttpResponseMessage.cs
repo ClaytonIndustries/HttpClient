@@ -108,16 +108,38 @@ namespace CI.HttpClient
             get; set;
         }
 
+        /// <summary>
+        /// Returns the response as a string
+        /// </summary>
+        /// <returns>The response as a string</returns>
         public string ReadAsString()
         {
             return Encoding.UTF8.GetString(Data);
         }
 
-        public byte[] ReadAsBytes()
+        /// <summary>
+        /// Returns the response as a string using the specified encoding
+        /// </summary>
+        /// <param name="encoding">The encoding used by the server</param>
+        /// <returns>The response as a string</returns>
+        public string ReadAsString(Encoding encoding)
+        {
+            return encoding.GetString(Data);
+        }
+
+        /// <summary>
+        /// Returns the response as a byte array
+        /// </summary>
+        /// <returns>The response as a byte array</returns>
+        public byte[] ReadAsByteArray()
         {
             return Data;
         }
 
+        /// <summary>
+        /// Returns the response as a stream
+        /// </summary>
+        /// <returns>The response as a stream</returns>
         public Stream ReadAsStream()
         {
             return new MemoryStream(Data);
