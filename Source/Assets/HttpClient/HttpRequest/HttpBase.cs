@@ -252,7 +252,7 @@ namespace CI.HttpClient.Core
                         totalContentRead += contentReadThisRound;
 
                         byte[] responseData = new byte[contentReadThisRound];
-
+                        
                         Array.Copy(buffer, responseData, contentReadThisRound);
 
                         if (completionOption == HttpCompletionOption.AllResponseContent)
@@ -295,11 +295,10 @@ namespace CI.HttpClient.Core
             {
                 try
                 {
-                    responseCallback(new HttpResponseMessage()
+                    responseCallback(new HttpResponseMessage(data)
                     {
                         OriginalRequest = _request,
                         OriginalResponse = _response,
-                        Data = data,
                         ContentLength = _response.ContentLength,
                         ContentReadThisRound = contentReadThisRound,
                         TotalContentRead = totalContentRead,

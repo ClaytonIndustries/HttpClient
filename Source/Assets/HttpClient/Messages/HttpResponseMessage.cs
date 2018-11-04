@@ -27,14 +27,6 @@ namespace CI.HttpClient
         }
 
         /// <summary>
-        /// Data that has been read from the server
-        /// </summary>
-        public byte[] Data
-        {
-            get; set;
-        }
-
-        /// <summary>
         /// Length of the content being downloaded
         /// </summary>
         public long ContentLength
@@ -109,12 +101,31 @@ namespace CI.HttpClient
         }
 
         /// <summary>
+        /// Did the server return any content
+        /// </summary>
+        public bool HasContent
+        {
+            get { return _responseData != null && ContentReadThisRound > 0; }
+        }
+
+        private readonly byte[] _responseData;
+
+        public HttpResponseMessage()
+        {
+        }
+
+        public HttpResponseMessage(byte[] responseData)
+        {
+            _responseData = responseData;
+        }
+
+        /// <summary>
         /// Returns the response as a string
         /// </summary>
         /// <returns>The response as a string</returns>
         public string ReadAsString()
         {
-            return Encoding.UTF8.GetString(Data);
+            return Encoding.UTF8.GetString(_responseData);
         }
 
         /// <summary>
@@ -124,7 +135,7 @@ namespace CI.HttpClient
         /// <returns>The response as a string</returns>
         public string ReadAsString(Encoding encoding)
         {
-            return encoding.GetString(Data);
+            return encoding.GetString(_responseData);
         }
 
         /// <summary>
@@ -133,7 +144,7 @@ namespace CI.HttpClient
         /// <returns>The response as a byte array</returns>
         public byte[] ReadAsByteArray()
         {
-            return Data;
+            return _responseData;
         }
 
         /// <summary>
@@ -142,7 +153,7 @@ namespace CI.HttpClient
         /// <returns>The response as a stream</returns>
         public Stream ReadAsStream()
         {
-            return new MemoryStream(Data);
+            return new MemoryStream(_responseData);
         }
     }
 }
