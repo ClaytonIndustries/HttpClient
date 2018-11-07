@@ -1,4 +1,5 @@
-﻿using CI.HttpClient;
+﻿using System.IO;
+using CI.HttpClient;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -68,6 +69,9 @@ public class ExampleSceneManagerController : MonoBehaviour
         HttpClient client = new HttpClient();
         client.Delete(new System.Uri("http://httpbin.org/delete"), HttpCompletionOption.AllResponseContent, (r) =>
         {
+#pragma warning disable 0219
+            string responseData = r.ReadAsString();
+#pragma warning restore 0219
         });
     }
 
@@ -76,6 +80,9 @@ public class ExampleSceneManagerController : MonoBehaviour
         HttpClient client = new HttpClient();
         client.Get(new System.Uri("http://httpbin.org/get"), HttpCompletionOption.AllResponseContent, (r) =>
         {
+#pragma warning disable 0219
+            byte[] responseData = r.ReadAsByteArray();
+#pragma warning restore 0219
         });
     }
 
@@ -87,6 +94,9 @@ public class ExampleSceneManagerController : MonoBehaviour
 
         client.Patch(new System.Uri("http://httpbin.org/patch"), content, HttpCompletionOption.AllResponseContent, (r) =>
         {
+#pragma warning disable 0219
+            Stream responseData = r.ReadAsStream();
+#pragma warning restore 0219
         });
     }
 
@@ -98,6 +108,9 @@ public class ExampleSceneManagerController : MonoBehaviour
 
         client.Post(new System.Uri("http://httpbin.org/post"), content, HttpCompletionOption.AllResponseContent, (r) =>
         {
+#pragma warning disable 0219
+            string responseData = r.ReadAsString();
+#pragma warning restore 0219
         });
     }
 
@@ -109,6 +122,9 @@ public class ExampleSceneManagerController : MonoBehaviour
 
         client.Put(new System.Uri("http://httpbin.org/put"), content, HttpCompletionOption.AllResponseContent, (r) =>
         {
+#pragma warning disable 0219
+            string responseData = r.ReadAsString();
+#pragma warning restore 0219
         });
     }
 }
