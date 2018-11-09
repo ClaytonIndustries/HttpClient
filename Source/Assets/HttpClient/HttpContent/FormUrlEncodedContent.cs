@@ -35,7 +35,11 @@ namespace CI.HttpClient
 
         public long GetContentLength()
         {
+#if NETFX_CORE
+            return _content.Length; 
+#else
             return _content.LongLength;
+#endif
         }
 
         public string GetContentType()
