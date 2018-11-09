@@ -40,7 +40,7 @@ namespace CI.HttpClient.Core
         {
             using (Stream stream = _request.GetRequestStreamAsync().Result)
             {
-                if (content.ContentReadAction == ContentReadAction.Multi)
+                if (content.ContentReadAction == ContentReadAction.Multipart)
                 {
                     WriteMultipleContent(stream, content, uploadStatusCallback, blockSize);
                 }
@@ -143,7 +143,7 @@ namespace CI.HttpClient.Core
         }
 
 #if NETFX_CORE
-        protected void HandleResponseRead(Action<HttpResponseMessage<byte[]>> responseCallback, HttpCompletionOption completionOption, int blockSize)
+        protected void HandleResponseRead(Action<HttpResponseMessage> responseCallback, HttpCompletionOption completionOption, int blockSize)
         {
             try
             {
