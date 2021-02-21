@@ -70,7 +70,7 @@ namespace CI.HttpClient
         public bool KeepAlive { get; set; }
 
         /// <summary>
-        /// Specifies a collection of the name/value pairs that make up the HTTP headers
+        /// Specifies a collection of headers that will be included with all requests from this instance
         /// </summary>
         public IDictionary<string, string> Headers { get; set; }
 
@@ -78,6 +78,11 @@ namespace CI.HttpClient
         /// Proxy information that will be associated with requests
         /// </summary>
         public IWebProxy Proxy { get; set; }
+
+        /// <summary>
+        /// The type of decompression to use, default is none
+        /// </summary>
+        public DecompressionMethods AutomaticDecompression { get; set; }
 
         private readonly List<HttpWebRequest> _requests;
         private readonly object _lock;
@@ -138,7 +143,7 @@ namespace CI.HttpClient
         public void Delete(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage> responseCallback,
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            QueueRequest(uri, HttpAction.Delete, completionOption, content, responseCallback, uploadStatusCallback);
+            QueueRequest(uri, HttpAction.Delete, completionOption, content, responseCallback, uploadStatusCallback, null);
         }
 
         /// <summary>
@@ -164,7 +169,7 @@ namespace CI.HttpClient
         public void Patch(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage> responseCallback,
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            QueueRequest(uri, HttpAction.Patch, completionOption, content, responseCallback, uploadStatusCallback);
+            QueueRequest(uri, HttpAction.Patch, completionOption, content, responseCallback, uploadStatusCallback, null);
         }
 
         /// <summary>
@@ -179,7 +184,7 @@ namespace CI.HttpClient
         public void Post(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage> responseCallback,
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            QueueRequest(uri, HttpAction.Post, completionOption, content, responseCallback, uploadStatusCallback);
+            QueueRequest(uri, HttpAction.Post, completionOption, content, responseCallback, uploadStatusCallback, null);
         }
 
         /// <summary>
@@ -194,30 +199,21 @@ namespace CI.HttpClient
         public void Put(Uri uri, IHttpContent content, HttpCompletionOption completionOption, Action<HttpResponseMessage> responseCallback,
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            QueueRequest(uri, HttpAction.Put, completionOption, content, responseCallback, uploadStatusCallback);
+            QueueRequest(uri, HttpAction.Put, completionOption, content, responseCallback, uploadStatusCallback, null);
         }
 
         /// <summary>
-        /// Allows changing of the dispatcher, currently only used for testing purposes
+        /// Sends the specified HTTP request and returns the response body as a byte array. An uploadStatusCallback can be specified to report upload progress 
+        /// and a completion option specifies if download progress should be reported
         /// </summary>
-        /// <typeparam name="T">The type of dispatcher to create</typeparam>
-        public void SetDispatcher<T>() where T : Component, IDispatcher
+        /// <param name="request">The HTTP request message to send</param>
+        /// <param name="completionOption">Determines how the response should be read</param>
+        /// <param name="responseCallback">Callback raised once the request completes</param>
+        /// <param name="uploadStatusCallback">Callback that reports upload progress</param>
+        public void Send(HttpRequestMessage request, HttpCompletionOption completionOption, Action<HttpResponseMessage> responseCallback,
+            Action<UploadStatusMessage> uploadStatusCallback = null)
         {
-            GameObject dispatcherGameObject = GameObject.Find(DISPATCHER_GAMEOBJECT_NAME);
-
-            if (dispatcherGameObject != null)
-            {
-                foreach(var compontent in dispatcherGameObject.GetComponents(typeof(IDispatcher)))
-                {
-                    UnityEngine.Object.Destroy(compontent);
-                }
-
-                _dispatcher = dispatcherGameObject.AddComponent<T>();
-            }
-            else
-            {
-                _dispatcher = new GameObject(DISPATCHER_GAMEOBJECT_NAME).AddComponent<T>();
-            }
+            QueueRequest(request.Uri, request.Method, completionOption, request.Content, responseCallback, uploadStatusCallback, request.Headers);
         }
 
         private void QueueRequest(Uri uri, HttpAction httpAction, HttpCompletionOption httpCompletionOption, Action<HttpResponseMessage> responseCallback)
@@ -226,7 +222,7 @@ namespace CI.HttpClient
             {
                 try
                 {
-                    HttpWebRequest request = CreateRequest(uri);
+                    HttpWebRequest request = CreateRequest(uri, null);
                     new HttpRequest(httpAction, request, _dispatcher).Execute(httpCompletionOption, responseCallback, DownloadBlockSize);
                     RemoveRequest(request);
                 }
@@ -238,13 +234,13 @@ namespace CI.HttpClient
         }
 
         private void QueueRequest(Uri uri, HttpAction httpAction, HttpCompletionOption httpCompletionOption, IHttpContent httpContent, 
-            Action<HttpResponseMessage> responseCallback, Action<UploadStatusMessage> uploadStatusCallback)
+            Action<HttpResponseMessage> responseCallback, Action<UploadStatusMessage> uploadStatusCallback, IDictionary<string, string> headers)
         {
             QueueWorkItem((t) =>
             {
                 try
                 {
-                    HttpWebRequest request = CreateRequest(uri);
+                    HttpWebRequest request = CreateRequest(uri, headers);
                     new HttpRequest(httpAction, request, _dispatcher).Execute(httpContent, httpCompletionOption, responseCallback, uploadStatusCallback, DownloadBlockSize, UploadBlockSize);
                     RemoveRequest(request);
                 }
@@ -267,16 +263,17 @@ namespace CI.HttpClient
         }
 #endif
 
-        private HttpWebRequest CreateRequest(Uri uri)
+        private HttpWebRequest CreateRequest(Uri uri, IDictionary<string, string> requestHeaders)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+            request.AutomaticDecompression = AutomaticDecompression;
             DisableWriteStreamBuffering(request);
             AddCache(request);
             AddCertificates(request);
             AddCookies(request);
             AddCredentials(request);
             AddKeepAlive(request);
-            AddHeaders(request);
+            AddHeaders(request, requestHeaders);
             AddProxy(request);
             AddTimeouts(request);
             AddRequest(request);
@@ -333,56 +330,69 @@ namespace CI.HttpClient
 #endif
         }
 
-        private void AddHeaders(HttpWebRequest request)
+        private void AddHeaders(HttpWebRequest request, IDictionary<string, string> requestHeaders)
         {
             if (Headers != null)
             {
                 foreach (var header in Headers)
                 {
-#if NETFX_CORE
-                    request.Headers[header.Key] = header.Value;
-#else
-                    switch (header.Key.ToLower())
-                    {
-                        case "accept":
-                            request.Accept = header.Value;
-                            break;
-                        case "connection":
-                            request.Connection = header.Value;
-                            break;
-                        case "content-length":
-                            throw new NotSupportedException("Content Length is set automatically");
-                        case "content-type":
-                            throw new NotSupportedException("Content Type is set automatically");
-                        case "expect":
-                            request.Expect = header.Value;
-                            break;
-                        case "date":
-                            throw new NotSupportedException("Date is automatically set by the system to the current date");
-                        case "host":
-                            throw new NotSupportedException("Host is automatically set by the system to current host information");
-                        case "if-modified-since":
-                            request.IfModifiedSince = DateTime.Parse(header.Value);
-                            break;
-                        case "range":
-                            int range = int.Parse(header.Value);
-                            request.AddRange(range);
-                            break;                          
-                        case "referer":
-                            request.Referer = header.Value;
-                            break;
-                        case "transfer-encoding":
-                            throw new NotSupportedException("Transfer Encoding is not currently supported");
-                        case "user-agent":
-                            request.UserAgent = header.Value;
-                            break;
-                        default:
-                            request.Headers[header.Key] = header.Value;
-                            break;
-                    }
-#endif
+                    AddHeader(request, header);
                 }
             }
+
+            if (requestHeaders != null)
+            {
+                foreach (var header in requestHeaders)
+                {
+                    AddHeader(request, header);
+                }
+            }
+        }
+
+        private void AddHeader(HttpWebRequest request, KeyValuePair<string, string> header)
+        {
+#if NETFX_CORE
+            request.Headers[header.Key] = header.Value;
+#else
+            switch (header.Key.ToLower())
+            {
+                case "accept":
+                    request.Accept = header.Value;
+                    break;
+                case "connection":
+                    request.Connection = header.Value;
+                    break;
+                case "content-length":
+                    throw new NotSupportedException("Content Length is set automatically");
+                case "content-type":
+                    throw new NotSupportedException("Content Type is set automatically");
+                case "expect":
+                    request.Expect = header.Value;
+                    break;
+                case "date":
+                    throw new NotSupportedException("Date is automatically set by the system to the current date");
+                case "host":
+                    throw new NotSupportedException("Host is automatically set by the system to current host information");
+                case "if-modified-since":
+                    request.IfModifiedSince = DateTime.Parse(header.Value);
+                    break;
+                case "range":
+                    int range = int.Parse(header.Value);
+                    request.AddRange(range);
+                    break;
+                case "referer":
+                    request.Referer = header.Value;
+                    break;
+                case "transfer-encoding":
+                    throw new NotSupportedException("Transfer Encoding is not currently supported");
+                case "user-agent":
+                    request.UserAgent = header.Value;
+                    break;
+                default:
+                    request.Headers[header.Key] = header.Value;
+                    break;
+            }
+#endif
         }
 
         private void AddProxy(HttpWebRequest request)

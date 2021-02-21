@@ -14,3 +14,4 @@ Temp
 /Source/bin/*
 /Source/obj/*
 /Source/UWP/*
+/Source/Logs/*

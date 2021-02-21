@@ -24,20 +24,39 @@ namespace CI.HttpClient.Core
 #if NETFX_CORE
         protected void SetContentHeaders(IHttpContent content)
         {
-            _request.Headers[HttpRequestHeader.ContentLength] = content.GetContentLength().ToString();
-            _request.ContentType = content.GetContentType();
+            if (content != null)
+            {
+                _request.Headers[HttpRequestHeader.ContentLength] = content.GetContentLength().ToString();
+                _request.ContentType = content.GetContentType();
+            }
+            else
+            {
+                _request.Headers[HttpRequestHeader.ContentLength] = 0.ToString();
+            }
         }
 #else
         protected void SetContentHeaders(IHttpContent content)
         {
-            _request.ContentLength = content.GetContentLength();
-            _request.ContentType = content.GetContentType();
+            if (content != null)
+            {
+                _request.ContentLength = content.GetContentLength();
+                _request.ContentType = content.GetContentType();
+            }
+            else
+            {
+                _request.ContentLength = 0;
+            }
         }
 #endif
 
 #if NETFX_CORE
         protected void HandleRequestWrite(IHttpContent content, Action<UploadStatusMessage> uploadStatusCallback, int blockSize)
         {
+            if (content == null)
+            {
+                return;
+            }
+
             using (Stream stream = _request.GetRequestStreamAsync().Result)
             {
                 if (content.ContentReadAction == ContentReadAction.Multipart)
@@ -53,6 +72,11 @@ namespace CI.HttpClient.Core
 #else
         protected void HandleRequestWrite(IHttpContent content, Action<UploadStatusMessage> uploadStatusCallback, int blockSize)
         {
+            if (content == null)
+            {
+                return;
+            }
+
             using (Stream stream = _request.GetRequestStream())
             {
                 if (content.ContentReadAction == ContentReadAction.Multipart)
