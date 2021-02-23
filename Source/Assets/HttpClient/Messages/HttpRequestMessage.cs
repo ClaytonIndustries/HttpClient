@@ -22,7 +22,7 @@ namespace CI.HttpClient
         /// Headers to be included with the HTTP message. If the HttpClient also has headers then they will be merged together,
         /// if there are duplicates then these take precedence
         /// </summary>
-        public IDictionary<string, string> Headers { get; }
+        public IDictionary<string, string> Headers { get; set; }
 
         /// <summary>
         /// The Uri used by the HTTP message
