@@ -5,7 +5,7 @@ Http Client is a plugin that makes it easy to make HTTP / HTTPS REST calls in Un
 
 ## Requirements
 
- * Unity 5 or above
+ * Unity 2018.4 or above
 
 ## Built with
 
