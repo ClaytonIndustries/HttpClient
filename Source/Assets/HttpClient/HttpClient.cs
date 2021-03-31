@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
-using CI.HttpClient.Core;
-using UnityEngine;
-
-#if NETFX_CORE
-using Windows.System.Threading;
-#else
 using System.Net.Cache;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
-#endif
+using CI.HttpClient.Core;
+using UnityEngine;
 
 namespace CI.HttpClient
 {
@@ -33,26 +28,24 @@ namespace CI.HttpClient
         public int UploadBlockSize { get; set; }
 
         /// <summary>
-        /// Timeout value in milliseconds for opening read / write streams to the server. The default value is 100,000 milliseconds (100 seconds). Set by the system for Windows Store
+        /// Timeout value in milliseconds for opening read / write streams to the server. The default value is 100,000 milliseconds (100 seconds)
         /// </summary>
         public int Timeout { get; set; }
 
         /// <summary>
-        /// Timeout value in milliseconds when reading or writing data to / from the server. The default value is 300,000 milliseconds (5 minutes). Set by the system for Windows Store
+        /// Timeout value in milliseconds when reading or writing data to / from the server. The default value is 300,000 milliseconds (5 minutes)
         /// </summary>
         public int ReadWriteTimeout { get; set; }
 
-#if !NETFX_CORE
         /// <summary>
-        /// The cache policy that will be associated with requests. Not available for Windows Store
+        /// The cache policy that will be associated with requests
         /// </summary>
         public RequestCachePolicy Cache { get; set; }
 
         /// <summary>
-        /// The collection of security certificates that will be associated with requests. Not available for Windows Store
+        /// The collection of security certificates that will be associated with requests
         /// </summary>
         public X509CertificateCollection Certificates { get; set; }
-#endif
 
         /// <summary>
         /// Cookies that will be associated with requests
@@ -65,7 +58,7 @@ namespace CI.HttpClient
         public ICredentials Credentials { get; set; }
 
         /// <summary>
-        /// Indicates whether to make a persistent connection to the Internet resource. The default is true. Set by the system for Windows Store
+        /// Indicates whether to make a persistent connection to the Internet resource. The default is true
         /// </summary>
         public bool KeepAlive { get; set; }
 
@@ -251,17 +244,10 @@ namespace CI.HttpClient
             });
         }
 
-#if NETFX_CORE
-        private async void QueueWorkItem(WorkItemHandler action)
-        {
-            await ThreadPool.RunAsync(action);
-        }
-#else
         private void QueueWorkItem(WaitCallback action)
         {
             ThreadPool.QueueUserWorkItem(action);
         }
-#endif
 
         private HttpWebRequest CreateRequest(Uri uri, IDictionary<string, string> requestHeaders)
         {
@@ -282,29 +268,23 @@ namespace CI.HttpClient
 
         private void DisableWriteStreamBuffering(HttpWebRequest request)
         {        
-#if !NETFX_CORE
             request.AllowWriteStreamBuffering = false;
-#endif
         }
 
         private void AddCache(HttpWebRequest request)
         {
-#if !NETFX_CORE
             if (Cache != null)
             {
                 request.CachePolicy = Cache;
             }
-#endif
         }
 
         private void AddCertificates(HttpWebRequest request)
         {
-#if !NETFX_CORE
             if (Certificates != null)
             {
                 request.ClientCertificates = Certificates;
             }
-#endif
         }
 
         private void AddCookies(HttpWebRequest request)
@@ -325,9 +305,7 @@ namespace CI.HttpClient
 
         private void AddKeepAlive(HttpWebRequest request)
         {
-#if !NETFX_CORE
             request.KeepAlive = KeepAlive;
-#endif
         }
 
         private void AddHeaders(HttpWebRequest request, IDictionary<string, string> requestHeaders)
@@ -351,9 +329,6 @@ namespace CI.HttpClient
 
         private void AddHeader(HttpWebRequest request, KeyValuePair<string, string> header)
         {
-#if NETFX_CORE
-            request.Headers[header.Key] = header.Value;
-#else
             switch (header.Key.ToLower())
             {
                 case "accept":
@@ -392,7 +367,6 @@ namespace CI.HttpClient
                     request.Headers[header.Key] = header.Value;
                     break;
             }
-#endif
         }
 
         private void AddProxy(HttpWebRequest request)
@@ -405,10 +379,8 @@ namespace CI.HttpClient
 
         private void AddTimeouts(HttpWebRequest request)
         {
-#if !NETFX_CORE
             request.Timeout = Timeout;
             request.ReadWriteTimeout = ReadWriteTimeout;
-#endif
         }
 
         private void AddRequest(HttpWebRequest request)

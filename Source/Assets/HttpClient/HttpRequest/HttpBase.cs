@@ -21,20 +21,6 @@ namespace CI.HttpClient.Core
             _request.Method = httpAction.ToString().ToUpper();
         }
 
-#if NETFX_CORE
-        protected void SetContentHeaders(IHttpContent content)
-        {
-            if (content != null)
-            {
-                _request.Headers[HttpRequestHeader.ContentLength] = content.GetContentLength().ToString();
-                _request.ContentType = content.GetContentType();
-            }
-            else
-            {
-                _request.Headers[HttpRequestHeader.ContentLength] = 0.ToString();
-            }
-        }
-#else
         protected void SetContentHeaders(IHttpContent content)
         {
             if (content != null)
@@ -47,29 +33,7 @@ namespace CI.HttpClient.Core
                 _request.ContentLength = 0;
             }
         }
-#endif
 
-#if NETFX_CORE
-        protected void HandleRequestWrite(IHttpContent content, Action<UploadStatusMessage> uploadStatusCallback, int blockSize)
-        {
-            if (content == null)
-            {
-                return;
-            }
-
-            using (Stream stream = _request.GetRequestStreamAsync().Result)
-            {
-                if (content.ContentReadAction == ContentReadAction.Multipart)
-                {
-                    WriteMultipleContent(stream, content, uploadStatusCallback, blockSize);
-                }
-                else
-                {
-                    WriteSingleContent(stream, content, uploadStatusCallback, blockSize, content.GetContentLength(), 0);
-                }
-            }
-        }
-#else
         protected void HandleRequestWrite(IHttpContent content, Action<UploadStatusMessage> uploadStatusCallback, int blockSize)
         {
             if (content == null)
@@ -89,7 +53,6 @@ namespace CI.HttpClient.Core
                 }
             }
         }
-#endif
 
         private void WriteMultipleContent(Stream stream, IHttpContent content, Action<UploadStatusMessage> uploadStatusCallback, int blockSize)
         {
@@ -166,75 +129,6 @@ namespace CI.HttpClient.Core
             return totalContentUploaded;
         }
 
-#if NETFX_CORE
-        protected void HandleResponseRead(Action<HttpResponseMessage> responseCallback, HttpCompletionOption completionOption, int blockSize)
-        {
-            try
-            {
-                _response = (HttpWebResponse)_request.GetResponseAsync().Result;
-            }
-            catch (AggregateException e)
-            {
-                if (e.InnerExceptions.Any() && e.InnerExceptions.First() is WebException)
-                {
-                    _response = (HttpWebResponse)(e.InnerExceptions.First() as WebException).Response;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            if (_response == null)
-            {
-                throw new Exception("Server did not return a response");
-            }
-
-            using (Stream stream = _response.GetResponseStream())
-            {
-                if (responseCallback == null)
-                {
-                    return;
-                }
-
-                long totalContentRead = 0;
-                int contentReadThisRound = 0;
-
-                int readThisLoop = 0;
-                List<byte> allContent = new List<byte>();
-                byte[] buffer = new byte[blockSize];
-
-                do
-                {
-                    readThisLoop = stream.Read(buffer, contentReadThisRound, blockSize - contentReadThisRound);
-
-                    contentReadThisRound += readThisLoop;
-
-                    if (contentReadThisRound == blockSize || readThisLoop == 0)
-                    {
-                        totalContentRead += contentReadThisRound;
-
-                        byte[] responseData = new byte[contentReadThisRound];
-
-                        Array.Copy(buffer, responseData, contentReadThisRound);
-
-                        if (completionOption == HttpCompletionOption.AllResponseContent)
-                        {
-                            allContent.AddRange(responseData);
-                        }
-
-                        if (completionOption == HttpCompletionOption.StreamResponseContent || readThisLoop == 0)
-                        {
-                            RaiseResponseCallback(responseCallback, completionOption == HttpCompletionOption.AllResponseContent ? allContent.ToArray() : responseData,
-                                completionOption == HttpCompletionOption.AllResponseContent ? totalContentRead : contentReadThisRound, totalContentRead);
-                        }
-
-                        contentReadThisRound = 0;
-                    }
-                } while (readThisLoop > 0);
-            }
-        }
-#else
         protected void HandleResponseRead(Action<HttpResponseMessage> responseCallback, HttpCompletionOption completionOption, int blockSize)
         {
             try
@@ -295,7 +189,6 @@ namespace CI.HttpClient.Core
                 } while (readThisLoop > 0);
             }
         }
-#endif
 
         private void RaiseUploadStatusCallback(Action<UploadStatusMessage> uploadStatusCallback, long contentLength, long contentUploadedThisRound, long totalContentUploaded)
         {

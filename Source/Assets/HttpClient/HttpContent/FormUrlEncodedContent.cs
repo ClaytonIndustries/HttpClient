@@ -35,11 +35,7 @@ namespace CI.HttpClient
 
         public long GetContentLength()
         {
-#if NETFX_CORE
-            return _content.Length; 
-#else
             return _content.LongLength;
-#endif
         }
 
         public string GetContentType()
@@ -72,7 +68,9 @@ namespace CI.HttpClient
         private void UrlEncoded(StringBuilder sb, string name, string value)
         {
             if (sb.Length != 0)
+            {
                 sb.Append("&");
+            }
             sb.Append(Uri.EscapeUriString(name));
             sb.Append("=");
             sb.Append(Uri.EscapeUriString(value));
