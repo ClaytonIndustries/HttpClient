@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Cache;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
+using System.Threading.Tasks;
 using CI.HttpClient.Core;
 using UnityEngine;
 
@@ -114,7 +115,7 @@ namespace CI.HttpClient
         }
 
         /// <summary>
-        /// Sends a DELETE request to the specified Uri and returns the response body as a byte array. A completion option specifies if download progress should be reported
+        /// Sends a DELETE request to the specified Uri and returns the response. A completion option specifies if download progress should be reported
         /// </summary>
         /// <param name="uri">The Uri the request is sent to</param>
         /// <param name="completionOption">Determines how the response should be read</param>
@@ -125,7 +126,7 @@ namespace CI.HttpClient
         }
 
         /// <summary>
-        /// Sends a Delete request to the specified Uri and returns the response body as a byte array. An uploadStatusCallback can be specified to report upload progress 
+        /// Sends a Delete request to the specified Uri and returns the response. An uploadStatusCallback can be specified to report upload progress 
         /// and a completion option specifies if download progress should be reported
         /// </summary>
         /// <param name="uri">The Uri the request is sent to</param>
@@ -140,7 +141,24 @@ namespace CI.HttpClient
         }
 
         /// <summary>
-        /// Sends a GET request to the specified Uri and returns the response body as a byte array. A completion option specifies if download progress should be reported
+        /// Sends a DELETE request to the specified Uri and returns the response
+        /// </summary>
+        /// <param name="uri">The Uri the request is sent to</param>
+        /// <returns>The http response message</returns>
+        public Task<HttpResponseMessage> DeleteAsync(Uri uri)
+        {
+            var task = new TaskCompletionSource<HttpResponseMessage>();
+
+            Delete(uri, HttpCompletionOption.AllResponseContent, r =>
+            {
+                task.SetResult(r);
+            });
+
+            return task.Task;
+        }
+
+        /// <summary>
+        /// Sends a GET request to the specified Uri and returns the response. A completion option specifies if download progress should be reported
         /// </summary>
         /// <param name="uri">The Uri the request is sent to</param>
         /// <param name="completionOption">Determines how the response should be read</param>
@@ -151,7 +169,24 @@ namespace CI.HttpClient
         }
 
         /// <summary>
-        /// Sends a PATCH request to the specified Uri and returns the response body as a byte array. An uploadStatusCallback can be specified to report upload progress 
+        /// Sends a GET request to the specified Uri and returns the response
+        /// </summary>
+        /// <param name="uri">The Uri the request is sent to</param>
+        /// <returns>The http response message</returns>
+        public Task<HttpResponseMessage> GetAsync(Uri uri)
+        {
+            var task = new TaskCompletionSource<HttpResponseMessage>();
+
+            Get(uri, HttpCompletionOption.AllResponseContent, r =>
+            {
+                task.SetResult(r);
+            });
+
+            return task.Task;
+        }
+
+        /// <summary>
+        /// Sends a PATCH request to the specified Uri and returns the response. An uploadStatusCallback can be specified to report upload progress 
         /// and a completion option specifies if download progress should be reported
         /// </summary>
         /// <param name="uri">The Uri the request is sent to</param>
@@ -166,7 +201,36 @@ namespace CI.HttpClient
         }
 
         /// <summary>
-        /// Sends a POST request to the specified Uri and returns the response body as a byte array. An uploadStatusCallback can be specified to report upload progress 
+        /// Sends a PATCH request to the specified Uri and returns the response. A completion option specifies if download progress should be reported
+        /// </summary>
+        /// <param name="uri">The Uri the request is sent to</param>
+        /// <param name="completionOption">Determines how the response should be read</param>
+        /// <param name="responseCallback">Callback raised once the request completes</param>
+        public void Patch(Uri uri, HttpCompletionOption completionOption, Action<HttpResponseMessage> responseCallback)
+        {
+            QueueRequest(uri, HttpAction.Patch, completionOption, responseCallback);
+        }
+
+        /// <summary>
+        /// Sends a PATCH request to the specified Uri and returns the response
+        /// </summary>
+        /// <param name="uri">The Uri the request is sent to</param>
+        /// <param name="content">Data to send</param>
+        /// <returns>The http response message</returns>
+        public Task PatchAsync(Uri uri, IHttpContent content)
+        {
+            var task = new TaskCompletionSource<HttpResponseMessage>();
+
+            Patch(uri, content, HttpCompletionOption.AllResponseContent, r =>
+            {
+                task.SetResult(r);
+            });
+
+            return task.Task;
+        }
+
+        /// <summary>
+        /// Sends a POST request to the specified Uri and returns the response. An uploadStatusCallback can be specified to report upload progress 
         /// and a completion option specifies if download progress should be reported
         /// </summary>
         /// <param name="uri">The Uri the request is sent to</param>
@@ -181,7 +245,36 @@ namespace CI.HttpClient
         }
 
         /// <summary>
-        /// Sends a PUT request to the specified Uri and returns the response body as a byte array. An uploadStatusCallback can be specified to report upload progress 
+        /// Sends a POST request to the specified Uri and returns the response. A completion option specifies if download progress should be reported
+        /// </summary>
+        /// <param name="uri">The Uri the request is sent to</param>
+        /// <param name="completionOption">Determines how the response should be read</param>
+        /// <param name="responseCallback">Callback raised once the request completes</param>
+        public void Post(Uri uri, HttpCompletionOption completionOption, Action<HttpResponseMessage> responseCallback)
+        {
+            QueueRequest(uri, HttpAction.Post, completionOption, responseCallback);
+        }
+
+        /// <summary>
+        /// Sends a POST request to the specified Uri and returns the response
+        /// </summary>
+        /// <param name="uri">The Uri the request is sent to</param>
+        /// <param name="content">Data to send</param>
+        /// <returns>The http response message</returns>
+        public Task PostAsync(Uri uri, IHttpContent content)
+        {
+            var task = new TaskCompletionSource<HttpResponseMessage>();
+
+            Post(uri, content, HttpCompletionOption.AllResponseContent, r =>
+            {
+                task.SetResult(r);
+            });
+
+            return task.Task;
+        }
+
+        /// <summary>
+        /// Sends a PUT request to the specified Uri and returns the response. An uploadStatusCallback can be specified to report upload progress 
         /// and a completion option specifies if download progress should be reported
         /// </summary>
         /// <param name="uri">The Uri the request is sent to</param>
@@ -196,7 +289,36 @@ namespace CI.HttpClient
         }
 
         /// <summary>
-        /// Sends the specified HTTP request and returns the response body as a byte array. An uploadStatusCallback can be specified to report upload progress 
+        /// Sends a PUT request to the specified Uri and returns the response. A completion option specifies if download progress should be reported
+        /// </summary>
+        /// <param name="uri">The Uri the request is sent to</param>
+        /// <param name="completionOption">Determines how the response should be read</param>
+        /// <param name="responseCallback">Callback raised once the request completes</param>
+        public void Put(Uri uri, HttpCompletionOption completionOption, Action<HttpResponseMessage> responseCallback)
+        {
+            QueueRequest(uri, HttpAction.Put, completionOption, responseCallback);
+        }
+
+        /// <summary>
+        /// Sends a PUT request to the specified Uri and returns the response
+        /// </summary>
+        /// <param name="uri">The Uri the request is sent to</param>
+        /// <param name="content">Data to send</param>
+        /// <returns>The http response message</returns>
+        public Task PutAsync(Uri uri, IHttpContent content)
+        {
+            var task = new TaskCompletionSource<HttpResponseMessage>();
+
+            Put(uri, content, HttpCompletionOption.AllResponseContent, r =>
+            {
+                task.SetResult(r);
+            });
+
+            return task.Task;
+        }
+
+        /// <summary>
+        /// Sends the specified HTTP request and returns the response. An uploadStatusCallback can be specified to report upload progress 
         /// and a completion option specifies if download progress should be reported
         /// </summary>
         /// <param name="request">The HTTP request message to send</param>
@@ -207,6 +329,23 @@ namespace CI.HttpClient
             Action<UploadStatusMessage> uploadStatusCallback = null)
         {
             QueueRequest(request.Uri, request.Method, completionOption, request.Content, responseCallback, uploadStatusCallback, request.Headers);
+        }
+
+        /// <summary>
+        /// Sends the specified HTTP request and returns the response
+        /// </summary>
+        /// <param name="request">The HTTP request message to send</param>
+        /// <returns>The http response message</returns>
+        public Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
+        {
+            var task = new TaskCompletionSource<HttpResponseMessage>();
+
+            Send(request, HttpCompletionOption.AllResponseContent, r =>
+            {
+                task.SetResult(r);
+            });
+
+            return task.Task;
         }
 
         private void QueueRequest(Uri uri, HttpAction httpAction, HttpCompletionOption httpCompletionOption, Action<HttpResponseMessage> responseCallback)
