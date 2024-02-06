@@ -158,6 +158,24 @@ namespace CI.HttpClient
         }
 
         /// <summary>
+        /// Sends a DELETE request to the specified Uri and returns the response
+        /// </summary>
+        /// <param name="uri">The Uri the request is sent to</param>
+        /// <param name="content">Data to send</param>
+        /// <returns>The http response message</returns>
+        public Task<HttpResponseMessage> DeleteAsync(Uri uri, IHttpContent content)
+        {
+            var task = new TaskCompletionSource<HttpResponseMessage>();
+
+            Delete(uri, content, HttpCompletionOption.AllResponseContent, r =>
+            {
+                task.SetResult(r);
+            });
+
+            return task.Task;
+        }
+
+        /// <summary>
         /// Sends a GET request to the specified Uri and returns the response. A completion option specifies if download progress should be reported
         /// </summary>
         /// <param name="uri">The Uri the request is sent to</param>
