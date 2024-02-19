@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace CI.HttpClient
 {
@@ -154,6 +155,16 @@ namespace CI.HttpClient
         public Stream ReadAsStream()
         {
             return new MemoryStream(_responseData);
+        }
+
+        /// <summary>
+        /// Deserialises the json response and returns the resulting object
+        /// </summary>
+        /// <typeparam name="T">The type to deserialise to</typeparam>
+        /// <returns>The deserialised object from the json response</returns>
+        public T ReadAsJson<T>()
+        {
+            return JsonConvert.DeserializeObject<T>(ReadAsString());
         }
     }
 }
