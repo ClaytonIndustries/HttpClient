@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace CI.HttpClient
 {
@@ -53,6 +54,13 @@ namespace CI.HttpClient
             {
                 { "Content-Type", mediaType + "; charset=" + encoding.WebName }
             };
+        }
+
+        public static StringContent FromObject(object value)
+        {
+            var json = JsonConvert.SerializeObject(value);
+
+            return new StringContent(json, Encoding.UTF8, "application/json");
         }
 
         public long GetContentLength()
