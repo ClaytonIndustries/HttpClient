@@ -56,6 +56,11 @@ namespace CI.HttpClient
             };
         }
 
+        /// <summary>
+        /// Creates a new StringContent by serialising the supplied object to json
+        /// </summary>
+        /// <param name="value">The object to serialise</param>
+        /// <returns>A new StringContent</returns>
         public static StringContent FromObject(object value)
         {
             var json = JsonConvert.SerializeObject(value);
